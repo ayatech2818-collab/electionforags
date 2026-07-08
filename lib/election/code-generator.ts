@@ -9,7 +9,7 @@ const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 /**
  * Generates a crypto-random 6-character code using the unambiguous alphabet.
  */
-function generateRandomCode(): string {
+export async function generateRandomCode(): Promise<string> {
   let result = '';
   for (let i = 0; i < 6; i++) {
     const randomIndex = crypto.randomInt(0, ALPHABET.length);
@@ -21,8 +21,10 @@ function generateRandomCode(): string {
 /**
  * Hashes a plaintext code with a given salt using SHA-256.
  */
-function hashCodeWithSalt(code: string, salt: string): string {
-  return crypto.createHash('sha256').update(code + salt).digest('hex');
+export async function hashSecretCode(code: string): Promise<{ hash: string, salt: string }> {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.createHash('sha256').update(code + salt).digest('hex');
+  return { hash, salt };
 }
 
 /**
@@ -60,9 +62,8 @@ export async function generateCodesForDivision(electionId: string, divisionId: s
 
   // 3. Generate codes for those who need them
   for (const student of studentsNeedingCodes) {
-    const plaintextCode = generateRandomCode();
-    const salt = crypto.randomBytes(16).toString('hex');
-    const codeHash = hashCodeWithSalt(plaintextCode, salt);
+    const plaintextCode = await generateRandomCode();
+    const { hash: codeHash, salt } = await hashSecretCode(plaintextCode);
 
     dbInserts.push({
       election_id: electionId,
