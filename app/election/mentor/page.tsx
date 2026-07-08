@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getActiveElections, getMentorDivisions, getDivisionRoster, invalidateCode, generateSingleCodeForWhatsapp } from './actions';
 import { Download, Users, AlertTriangle, RefreshCw, CheckCircle, MessageCircle, ShieldCheck, Fingerprint, User } from 'lucide-react';
-import { toBlob } from 'html-to-image';
 import toast from 'react-hot-toast';
 
 export default function MentorPortal() {
@@ -75,6 +74,7 @@ export default function MentorPortal() {
         // Wait briefly for DOM to fully paint the hidden card
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        const { toBlob } = await import('html-to-image');
         const blob = await toBlob(node, {
           backgroundColor: '#ffffff',
           pixelRatio: 2 // High resolution
