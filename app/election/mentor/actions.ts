@@ -4,7 +4,7 @@ import { supabaseAdmin, getServerUser } from '@/lib/supabase';
 
 export async function getMentorDivisions() {
   const user = await getServerUser();
-  if (!user) throw new Error('Not authenticated');
+  if (!user) return { error: 'Not authenticated' };
 
   // First resolve the mentor's ID from the mentors table using their auth user_id
   const { data: mentor } = await supabaseAdmin

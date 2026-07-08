@@ -27,15 +27,21 @@ export default function MentorPortal() {
           getActiveElections(),
           getMentorDivisions() // Server action checks auth session securely
         ]);
+        
+        if ((divData as any)?.error === 'Not authenticated') {
+          window.location.href = '/login';
+          return;
+        }
+
         setElections(elecData);
-        setDivisions(divData);
+        setDivisions(divData as any[]);
         if (elecData.length > 0) setActiveElection(elecData[0].id);
-        if (divData.length > 0) {
-          const initialGrade = divData[0].title.split(' ')[1];
+        if ((divData as any[]).length > 0) {
+          const initialGrade = (divData as any[])[0].title.split(' ')[1];
           setActiveGrade(initialGrade);
         }
       } catch (err: any) {
-        if (err.message === 'Not authenticated' || err.message.includes('authenticated')) {
+        if (err.message === 'Not authenticated' || err.message.includes('authenticated') || err.message.includes('digest')) {
           window.location.href = '/login';
         } else {
           setErrorMsg(err.message || 'Unknown error occurred while loading data.');
