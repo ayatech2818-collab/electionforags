@@ -147,7 +147,7 @@ export default function MentorPortal() {
       else if (formattedPhone.length < 10) formattedPhone = '91' + formattedPhone;
       else if (formattedPhone.length === 11 && formattedPhone.startsWith('0')) formattedPhone = '91' + formattedPhone.substring(1);
       
-      const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hi ${student.full_name}, here is your secure digital Voter ID Card for the AGS Elections.`)}`;
+      const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hi ${student.full_name}, here is your secure digital Voter ID Card for the AGS Elections.\n\nYou can cast your vote here: https://agselection.vercel.app/election/vote`)}`;
       
       // Trigger the image generation effect
       setGeneratingCard({

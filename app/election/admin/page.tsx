@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate } from './actions';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto } from './actions';
 import { Plus, Trash2, Shield, Calendar, MapPin, Users, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -187,6 +187,54 @@ export default function ElectionController() {
     }
   };
 
+  const handleUploadPhoto = async (candidateId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file (PNG/JPG)');
+      return;
+    }
+
+    const toastId = toast.loading('Uploading photo...');
+    try {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise((resolve) => (img.onload = resolve));
+      
+      const canvas = document.createElement('canvas');
+      const MAX_SIZE = 128;
+      
+      let width = img.width;
+      let height = img.height;
+      if (width > height) {
+        if (width > MAX_SIZE) {
+          height *= MAX_SIZE / width;
+          width = MAX_SIZE;
+        }
+      } else {
+        if (height > MAX_SIZE) {
+          width *= MAX_SIZE / height;
+          height = MAX_SIZE;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      
+      const base64 = canvas.toDataURL('image/jpeg', 0.8);
+      
+      await updateCandidatePhoto(candidateId, base64);
+      await loadDetails(activeElec.id);
+      toast.success('Photo updated!', { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Failed to update photo: ' + err.message, { id: toastId });
+    }
+  };
+
   if (isLoading) return <div className="p-10 text-center animate-pulse">Loading Configurator...</div>;
 
   return (
@@ -259,7 +307,19 @@ export default function ElectionController() {
                                       onChange={(e) => handleUploadSymbol(c.id, e)}
                                     />
                                     <button className="text-[10px] uppercase font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1 rounded">
-                                      {c.symbol_url ? 'Change' : 'Upload'}
+                                      {c.symbol_url ? 'Symbol' : '+ Symbol'}
+                                    </button>
+                                  </div>
+                                  <div className="relative">
+                                    <input 
+                                      type="file" 
+                                      accept="image/*"
+                                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                      title="Upload Photo"
+                                      onChange={(e) => handleUploadPhoto(c.id, e)}
+                                    />
+                                    <button className={`text-[10px] uppercase font-bold px-2 py-1 rounded ${c.photo_url ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
+                                      {c.photo_url ? 'Photo' : '+ Photo'}
                                     </button>
                                   </div>
                                   <button 

@@ -178,11 +178,16 @@ export default function StudentVotingBooth() {
                           <div className={`mb-4 w-8 h-8 rounded-full border-4 flex items-center justify-center transition-colors ${selections[pos.id] === c.id ? 'border-blue-500' : 'border-slate-200'}`}>
                             {selections[pos.id] === c.id && <div className="w-4 h-4 bg-blue-500 rounded-full" />}
                           </div>
-                          <span className="text-8xl drop-shadow-md mb-2 flex justify-center w-full">
+                          <span className="text-8xl drop-shadow-md mb-2 flex justify-center w-full relative">
+                            {c.photo_url && (
+                              <img src={c.photo_url} alt="Candidate" className="absolute -top-6 -right-2 w-20 h-20 rounded-full border-4 border-white object-cover shadow-lg z-10 bg-slate-100" />
+                            )}
                             {c.symbol_url ? (
-                              <img src={c.symbol_url} alt="symbol" className="w-32 h-32 object-contain" />
+                              <img src={c.symbol_url} alt="symbol" className="w-32 h-32 object-contain relative z-0" />
                             ) : (
-                              ['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]
+                              <span className="relative z-0">
+                                {['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]}
+                              </span>
                             )}
                           </span>
                         </button>

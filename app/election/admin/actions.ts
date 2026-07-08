@@ -160,6 +160,15 @@ export async function updateCandidateSymbol(candidateId: string, base64Url: stri
   return true;
 }
 
+export async function updateCandidatePhoto(candidateId: string, base64Url: string) {
+  const { error } = await supabaseAdmin
+    .from('election_candidates')
+    .update({ photo_url: base64Url })
+    .eq('id', candidateId);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 export async function getStudentsByDivision(divisionId: string) {
   const { data, error } = await supabaseAdmin
     .from('students')
