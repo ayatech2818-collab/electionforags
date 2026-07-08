@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto } from './actions';
-import { Plus, Trash2, Shield, Calendar, MapPin, Users, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck } from 'lucide-react';
+import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ElectionController() {
@@ -290,6 +290,13 @@ export default function ElectionController() {
                               .map((c: any, index: number) => (
                               <li key={c.id} className="text-sm font-medium flex items-center justify-between gap-2 p-1.5 border rounded bg-slate-50">
                                 <div className="flex items-center gap-2">
+                                  {c.photo_url ? (
+                                    <img src={c.photo_url} alt="photo" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
+                                  ) : (
+                                    <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center">
+                                      <User className="w-4 h-4 text-slate-400" />
+                                    </div>
+                                  )}
                                   {c.symbol_url ? (
                                     <img src={c.symbol_url} alt="symbol" className="w-7 h-7 object-contain" />
                                   ) : (
