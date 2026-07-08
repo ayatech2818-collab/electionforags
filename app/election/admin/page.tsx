@@ -280,7 +280,7 @@ export default function ElectionController() {
                   {positions.map(pos => (
                     <div key={pos.id} className="border border-slate-100 bg-slate-50 rounded-xl p-4 shadow-sm">
                       <h3 className="font-semibold text-lg text-slate-800 mb-2">{pos.name}</h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-4">
                         <div className="bg-white p-3 rounded border">
                           <p className="text-xs text-slate-400 uppercase font-bold mb-2">Contesting Candidates</p>
                           {pos.election_candidates?.length === 0 ? <p className="text-sm text-slate-500 italic">None</p> : null}
@@ -288,7 +288,7 @@ export default function ElectionController() {
                             {pos.election_candidates
                               ?.sort((a: any, b: any) => a.id.localeCompare(b.id))
                               .map((c: any, index: number) => (
-                              <li key={c.id} className="text-sm font-medium flex items-center justify-between gap-2 p-1.5 border rounded bg-slate-50">
+                              <li key={c.id} className="text-sm font-medium flex flex-wrap items-center justify-between gap-2 p-2 border rounded bg-slate-50">
                                 <div className="flex items-center gap-2">
                                   {c.photo_url ? (
                                     <img src={c.photo_url} alt="photo" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
