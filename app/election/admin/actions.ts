@@ -42,6 +42,15 @@ export async function updateElectionStatus(id: string, status: string) {
   return true;
 }
 
+export async function updateMentorResetAccess(id: string, allowReset: boolean) {
+  const { error } = await supabaseAdmin
+    .from('elections')
+    .update({ allow_mentor_reset: allowReset })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 export async function getPositions(electionId: string) {
   const { data, error } = await supabaseAdmin
     .from('election_positions')

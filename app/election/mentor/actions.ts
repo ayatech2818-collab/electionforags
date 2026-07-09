@@ -35,7 +35,7 @@ export async function getMentorDivisions() {
 export async function getActiveElections() {
   const { data, error } = await supabaseAdmin
     .from('elections')
-    .select('id, name, status, election_date')
+    .select('id, name, status, election_date, allow_mentor_reset')
     .in('status', ['draft', 'open']) // Mentors can generate cards before or during polling
     .order('created_at', { ascending: false });
     

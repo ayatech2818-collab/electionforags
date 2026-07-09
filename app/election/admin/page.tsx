@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection } from './actions';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection, updateMentorResetAccess } from './actions';
 import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -596,6 +596,35 @@ export default function ElectionController() {
 
                     </div>
                   )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mt-6">
+                <div className="flex items-center gap-2 text-slate-800 font-bold text-lg mb-2">
+                  <Settings className="w-5 h-5 text-blue-600" />
+                  Mentor Access Control
+                </div>
+                <p className="text-sm text-slate-500 mb-4">
+                  Allow Mother Mentors to reset student voter IDs. When disabled, the Reset button is hidden.
+                </p>
+                <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50">
+                  <span className="font-medium text-slate-700 text-sm">Enable Reset Button</span>
+                  <button
+                    onClick={async () => {
+                      const newStatus = !activeElec.allow_mentor_reset;
+                      try {
+                        await updateMentorResetAccess(activeElec.id, newStatus);
+                        setActiveElec({ ...activeElec, allow_mentor_reset: newStatus });
+                        setElections(elections.map(e => e.id === activeElec.id ? { ...e, allow_mentor_reset: newStatus } : e));
+                        toast.success(`Mentor reset access ${newStatus ? 'enabled' : 'disabled'}`);
+                      } catch (e: any) {
+                        toast.error(e.message);
+                      }
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${activeElec.allow_mentor_reset ? 'bg-blue-600' : 'bg-slate-300'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${activeElec.allow_mentor_reset ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
                 </div>
               </div>
 

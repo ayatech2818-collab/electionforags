@@ -306,7 +306,7 @@ export default function MentorPortal() {
                             <span className="text-xs text-slate-400 italic px-2">No Phone #</span>
                           )}
                           
-                          {student.hasCode && (
+                          {student.hasCode && elections.find(e => e.id === activeElection)?.allow_mentor_reset && (
                             <button 
                               onClick={() => handleRegenerate(student.id, student.full_name)}
                               className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
