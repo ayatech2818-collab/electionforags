@@ -14,7 +14,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all hover:-translate-y-1 flex flex-col h-full text-center">
             <div className="mx-auto bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
               <Vote className="w-8 h-8 text-blue-600" />
@@ -34,17 +34,6 @@ export default function Home() {
             <p className="text-sm text-slate-500 mb-6 flex-grow">Download ID cards for your class.</p>
             <Link href="/election/mentor" className="w-full inline-block border border-purple-200 text-purple-700 font-medium py-2.5 rounded-xl hover:bg-purple-50 transition-colors">
               Access Portal
-            </Link>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all hover:-translate-y-1 flex flex-col h-full text-center">
-            <div className="mx-auto bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-              <ClipboardList className="w-8 h-8 text-emerald-600" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 mb-2">Polling Officer</h2>
-            <p className="text-sm text-slate-500 mb-6 flex-grow">Track live turnout by division.</p>
-            <Link href="/election/polling" className="w-full inline-block border border-emerald-200 text-emerald-700 font-medium py-2.5 rounded-xl hover:bg-emerald-50 transition-colors">
-              View Station
             </Link>
           </div>
 
