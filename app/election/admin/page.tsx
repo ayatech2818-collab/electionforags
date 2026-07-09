@@ -489,7 +489,7 @@ export default function ElectionController() {
                     value={unlockGrade}
                     onChange={(e) => {
                       setUnlockGrade(e.target.value);
-                      setUnlockClassId('');
+                      setSelectedDivisions([]);
                     }}
                   >
                     <option value="" disabled>Select Grade</option>
