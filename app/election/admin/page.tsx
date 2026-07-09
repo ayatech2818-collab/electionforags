@@ -11,6 +11,7 @@ export default function ElectionController() {
   const [positions, setPositions] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [unlockGrade, setUnlockGrade] = useState<string>('');
   const [unlockClassId, setUnlockClassId] = useState<string>('');
 
   useEffect(() => {
@@ -485,14 +486,30 @@ export default function ElectionController() {
                   <p className="text-sm text-slate-500 mb-2">Unlock the voting link for a specific division.</p>
                   <select 
                     className="border p-2 text-sm rounded w-full bg-white text-slate-900"
-                    value={unlockClassId}
-                    onChange={(e) => setUnlockClassId(e.target.value)}
+                    value={unlockGrade}
+                    onChange={(e) => {
+                      setUnlockGrade(e.target.value);
+                      setUnlockClassId('');
+                    }}
                   >
-                    <option value="" disabled>Select Division</option>
-                    {classes.map(c => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
+                    <option value="" disabled>Select Grade</option>
+                    {Array.from(new Set(classes.map(d => d.title.split(' ')[1]).filter(Boolean))).sort().map(g => (
+                      <option key={g} value={g as string}>Grade {g as string}</option>
                     ))}
                   </select>
+
+                  {unlockGrade && (
+                    <select 
+                      className="border p-2 text-sm rounded w-full bg-white text-slate-900"
+                      value={unlockClassId}
+                      onChange={(e) => setUnlockClassId(e.target.value)}
+                    >
+                      <option value="" disabled>Select Division</option>
+                      {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => (
+                        <option key={d.id} value={d.id}>Div {d.title.split(' ')[2] || ''}</option>
+                      ))}
+                    </select>
+                  )}
                   <button 
                     disabled={!unlockClassId}
                     onClick={async () => {
