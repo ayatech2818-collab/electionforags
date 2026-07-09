@@ -542,7 +542,11 @@ export default function ElectionController() {
                                 />
                                 Div {d.title.split(' ')[2] || ''}
                               </div>
-                              <div className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-slate-300'}`} title={isEnabled ? 'Voting Enabled' : 'Voting Disabled'} />
+                              {isEnabled ? (
+                                <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">ENABLED</span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">DISABLED</span>
+                              )}
                             </label>
                           );
                         })}
