@@ -4,11 +4,11 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export async function loginAdmin(formData: FormData) {
-  const adminId = formData.get('adminId');
-  const password = formData.get('password');
+  const adminId = formData.get('adminId')?.toString().trim();
+  const password = formData.get('password')?.toString().trim();
 
-  const expectedId = process.env.CONTROLLER_ID || 'admin';
-  const expectedPassword = process.env.CONTROLLER_PASSWORD || 'agselectionid9965';
+  const expectedId = (process.env.CONTROLLER_ID || 'admin').trim();
+  const expectedPassword = (process.env.CONTROLLER_PASSWORD || 'agselectionid9965').trim();
 
   if (adminId === expectedId && password === expectedPassword) {
     const cookieStore = await cookies();
