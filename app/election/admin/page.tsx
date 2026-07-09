@@ -525,12 +525,12 @@ export default function ElectionController() {
                           </button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[160px] overflow-y-auto p-1">
+                      <div className="flex flex-col gap-2 max-h-[160px] overflow-y-auto p-1">
                         {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => {
                           const isEnabled = divisionStatuses[d.id] || false;
                           return (
-                            <label key={d.id} className={`flex items-center justify-between gap-2 text-sm p-2 rounded border cursor-pointer transition-colors ${selectedDivisions.includes(d.id) ? 'bg-blue-50 border-blue-200 text-blue-800 font-medium' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
-                              <div className="flex items-center gap-2">
+                            <label key={d.id} className={`flex items-center justify-between gap-3 text-sm p-3 rounded-lg border cursor-pointer transition-colors ${selectedDivisions.includes(d.id) ? 'bg-blue-50 border-blue-200 text-blue-800 font-medium' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
+                              <div className="flex items-center gap-3">
                                 <input 
                                   type="checkbox" 
                                   checked={selectedDivisions.includes(d.id)}
@@ -538,14 +538,14 @@ export default function ElectionController() {
                                     if (e.target.checked) setSelectedDivisions([...selectedDivisions, d.id]);
                                     else setSelectedDivisions(selectedDivisions.filter(id => id !== d.id));
                                   }}
-                                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                 />
-                                Div {d.title.split(' ')[2] || ''}
+                                <span className="font-medium text-base">Div {d.title.split(' ')[2] || ''}</span>
                               </div>
                               {isEnabled ? (
-                                <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">ENABLED</span>
+                                <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded">ENABLED</span>
                               ) : (
-                                <span className="text-[10px] font-bold text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">DISABLED</span>
+                                <span className="text-xs font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded">DISABLED</span>
                               )}
                             </label>
                           );
