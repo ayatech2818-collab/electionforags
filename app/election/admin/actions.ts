@@ -187,3 +187,12 @@ export async function removeCandidate(candidateId: string) {
   if (error) throw new Error(error.message);
   return true;
 }
+
+export async function removePosition(positionId: string) {
+  const { error } = await supabaseAdmin
+    .from('election_positions')
+    .delete()
+    .eq('id', positionId);
+  if (error) throw new Error(error.message);
+  return true;
+}

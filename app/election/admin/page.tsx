@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto } from './actions';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition } from './actions';
 import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -133,6 +133,45 @@ export default function ElectionController() {
             }}
           >
             Yes, Remove
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
+  };
+
+  const handleRemovePosition = (positionId: string) => {
+    toast((t) => (
+      <div className="flex flex-col gap-4 min-w-[280px] p-1">
+        <div className="flex items-start gap-3">
+          <div className="bg-red-100 p-2 rounded-full shrink-0">
+            <Trash2 className="w-5 h-5 text-red-600" />
+          </div>
+          <div>
+            <p className="font-bold text-slate-800">Delete Position</p>
+            <p className="text-sm text-slate-600 mt-1">Are you sure? All candidates under it will also be removed.</p>
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end mt-2">
+          <button 
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-sm font-medium transition-colors" 
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button 
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors" 
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await removePosition(positionId);
+                toast.success('Position deleted');
+                loadDetails(activeElec.id);
+              } catch (err: any) {
+                toast.error('Failed to delete position: ' + err.message);
+              }
+            }}
+          >
+            Yes, Delete
           </button>
         </div>
       </div>
@@ -279,7 +318,16 @@ export default function ElectionController() {
                 <div className="space-y-4">
                   {positions.map(pos => (
                     <div key={pos.id} className="border border-slate-100 bg-slate-50 rounded-xl p-4 shadow-sm">
-                      <h3 className="font-semibold text-lg text-slate-800 mb-2">{pos.name}</h3>
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-lg text-slate-800">{pos.name}</h3>
+                        <button 
+                          onClick={() => handleRemovePosition(pos.id)}
+                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors"
+                          title="Delete Position"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                       <div className="flex flex-col gap-4">
                         <div className="bg-white p-3 rounded border">
                           <p className="text-xs text-slate-400 uppercase font-bold mb-2">Contesting Candidates</p>
