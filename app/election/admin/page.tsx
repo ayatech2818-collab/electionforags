@@ -12,8 +12,7 @@ export default function ElectionController() {
   const [classes, setClasses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [unlockGrade, setUnlockGrade] = useState<string>('');
-  const [unlockClassId, setUnlockClassId] = useState<string>('');
-  const [isDivisionUnlocked, setIsDivisionUnlocked] = useState<boolean>(false);
+  const [selectedDivisions, setSelectedDivisions] = useState<string[]>([]);
 
   useEffect(() => {
     loadData();
@@ -22,22 +21,6 @@ export default function ElectionController() {
   useEffect(() => {
     if (activeElec) loadDetails(activeElec.id);
   }, [activeElec]);
-
-  useEffect(() => {
-    async function checkStatus() {
-      if (activeElec && unlockClassId) {
-        if (unlockClassId === 'ALL') {
-          const gradeDivs = classes.filter(d => d.title.split(' ')[1] === unlockGrade);
-          const statuses = await Promise.all(gradeDivs.map(d => getDivisionVotingStatus(activeElec.id, d.id)));
-          setIsDivisionUnlocked(statuses.some(s => s === true));
-        } else {
-          const status = await getDivisionVotingStatus(activeElec.id, unlockClassId);
-          setIsDivisionUnlocked(status);
-        }
-      }
-    }
-    checkStatus();
-  }, [unlockClassId, activeElec, classes, unlockGrade]);
 
   const loadData = async () => {
     try {
@@ -516,50 +499,78 @@ export default function ElectionController() {
                   </select>
 
                   {unlockGrade && (
-                    <select 
-                      className="border p-2 text-sm rounded w-full bg-white text-slate-900"
-                      value={unlockClassId}
-                      onChange={(e) => setUnlockClassId(e.target.value)}
-                    >
-                      <option value="" disabled>Select Division</option>
-                      <option value="ALL">All Divisions</option>
-                      {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => (
-                        <option key={d.id} value={d.id}>Div {d.title.split(' ')[2] || ''}</option>
-                      ))}
-                    </select>
+                    <div className="flex flex-col gap-3 mt-2 border-t pt-4 border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Divisions</p>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              const allIds = classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => d.id);
+                              setSelectedDivisions(allIds);
+                            }}
+                            className="text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded"
+                          >
+                            Select All
+                          </button>
+                          <button 
+                            onClick={() => setSelectedDivisions([])}
+                            className="text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-100 px-2 py-1 rounded"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[160px] overflow-y-auto p-1">
+                        {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => (
+                          <label key={d.id} className={`flex items-center gap-2 text-sm p-2 rounded border cursor-pointer transition-colors ${selectedDivisions.includes(d.id) ? 'bg-blue-50 border-blue-200 text-blue-800 font-medium' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
+                            <input 
+                              type="checkbox" 
+                              checked={selectedDivisions.includes(d.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedDivisions([...selectedDivisions, d.id]);
+                                else setSelectedDivisions(selectedDivisions.filter(id => id !== d.id));
+                              }}
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            Div {d.title.split(' ')[2] || ''}
+                          </label>
+                        ))}
+                      </div>
+                      
+                      <div className="flex gap-2 mt-2">
+                        <button 
+                          disabled={selectedDivisions.length === 0}
+                          onClick={async () => {
+                            try {
+                              await Promise.all(selectedDivisions.map(id => setDivisionVotingStatus(activeElec.id, id, true)));
+                              toast.success(`Voting ENABLED for ${selectedDivisions.length} division(s)!`);
+                              setSelectedDivisions([]);
+                            } catch(err: any) {
+                              toast.error(err.message);
+                            }
+                          }}
+                          className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                        >
+                          Enable Selected
+                        </button>
+                        <button 
+                          disabled={selectedDivisions.length === 0}
+                          onClick={async () => {
+                            try {
+                              await Promise.all(selectedDivisions.map(id => setDivisionVotingStatus(activeElec.id, id, false)));
+                              toast.success(`Voting DISABLED for ${selectedDivisions.length} division(s)!`);
+                              setSelectedDivisions([]);
+                            } catch(err: any) {
+                              toast.error(err.message);
+                            }
+                          }}
+                          className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 hover:bg-red-700 transition-colors"
+                        >
+                          Disable Selected
+                        </button>
+                      </div>
+                    </div>
                   )}
-                  <button 
-                    disabled={!unlockClassId}
-                    onClick={async () => {
-                      try {
-                        const newStatus = !isDivisionUnlocked;
-                        
-                        if (unlockClassId === 'ALL') {
-                          const gradeDivs = classes.filter(d => d.title.split(' ')[1] === unlockGrade);
-                          await Promise.all(gradeDivs.map(d => setDivisionVotingStatus(activeElec.id, d.id, newStatus)));
-                        } else {
-                          await setDivisionVotingStatus(activeElec.id, unlockClassId, newStatus);
-                        }
-                        
-                        setIsDivisionUnlocked(newStatus);
-                        const scopeMsg = unlockClassId === 'ALL' ? 'ALL divisions' : 'this division';
-                        if (newStatus) {
-                          toast.success(`Voting is now ENABLED for ${scopeMsg}!`);
-                        } else {
-                          toast.success(`Voting is now DISABLED for ${scopeMsg}!`);
-                        }
-                      } catch(err: any) {
-                        toast.error(err.message);
-                      }
-                    }}
-                    className={`text-white px-4 py-2 rounded font-medium disabled:opacity-50 transition-colors ${
-                      isDivisionUnlocked 
-                        ? 'bg-red-600 hover:bg-red-700' 
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
-                  >
-                    {isDivisionUnlocked ? 'Disable Voting' : 'Enable Voting'}
-                  </button>
                 </div>
               </div>
 
