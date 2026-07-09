@@ -26,12 +26,18 @@ export default function ElectionController() {
   useEffect(() => {
     async function checkStatus() {
       if (activeElec && unlockClassId) {
-        const status = await getDivisionVotingStatus(activeElec.id, unlockClassId);
-        setIsDivisionUnlocked(status);
+        if (unlockClassId === 'ALL') {
+          const gradeDivs = classes.filter(d => d.title.split(' ')[1] === unlockGrade);
+          const statuses = await Promise.all(gradeDivs.map(d => getDivisionVotingStatus(activeElec.id, d.id)));
+          setIsDivisionUnlocked(statuses.some(s => s === true));
+        } else {
+          const status = await getDivisionVotingStatus(activeElec.id, unlockClassId);
+          setIsDivisionUnlocked(status);
+        }
       }
     }
     checkStatus();
-  }, [unlockClassId, activeElec]);
+  }, [unlockClassId, activeElec, classes, unlockGrade]);
 
   const loadData = async () => {
     try {
@@ -516,6 +522,7 @@ export default function ElectionController() {
                       onChange={(e) => setUnlockClassId(e.target.value)}
                     >
                       <option value="" disabled>Select Division</option>
+                      <option value="ALL">All Divisions</option>
                       {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => (
                         <option key={d.id} value={d.id}>Div {d.title.split(' ')[2] || ''}</option>
                       ))}
@@ -526,12 +533,20 @@ export default function ElectionController() {
                     onClick={async () => {
                       try {
                         const newStatus = !isDivisionUnlocked;
-                        await setDivisionVotingStatus(activeElec.id, unlockClassId, newStatus);
-                        setIsDivisionUnlocked(newStatus);
-                        if (newStatus) {
-                          toast.success('Voting is now ENABLED for this division!');
+                        
+                        if (unlockClassId === 'ALL') {
+                          const gradeDivs = classes.filter(d => d.title.split(' ')[1] === unlockGrade);
+                          await Promise.all(gradeDivs.map(d => setDivisionVotingStatus(activeElec.id, d.id, newStatus)));
                         } else {
-                          toast.success('Voting is now DISABLED for this division!');
+                          await setDivisionVotingStatus(activeElec.id, unlockClassId, newStatus);
+                        }
+                        
+                        setIsDivisionUnlocked(newStatus);
+                        const scopeMsg = unlockClassId === 'ALL' ? 'ALL divisions' : 'this division';
+                        if (newStatus) {
+                          toast.success(`Voting is now ENABLED for ${scopeMsg}!`);
+                        } else {
+                          toast.success(`Voting is now DISABLED for ${scopeMsg}!`);
                         }
                       } catch(err: any) {
                         toast.error(err.message);
