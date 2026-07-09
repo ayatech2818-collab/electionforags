@@ -530,21 +530,24 @@ export default function ElectionController() {
                           const isEnabled = divisionStatuses[d.id] || false;
                           const isSelected = selectedDivisions.includes(d.id);
                           return (
-                            <label key={d.id} className={`flex items-center gap-3 text-sm p-2 rounded-md border cursor-pointer transition-colors ${
+                            <label key={d.id} className={`flex items-center justify-between gap-3 text-sm p-2 rounded-md border cursor-pointer transition-colors ${
                               isEnabled 
                                 ? 'bg-green-100 border-green-300 text-green-900' 
                                 : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                             } ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}>
-                              <input 
-                                type="checkbox" 
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  if (e.target.checked) setSelectedDivisions([...selectedDivisions, d.id]);
-                                  else setSelectedDivisions(selectedDivisions.filter(id => id !== d.id));
-                                }}
-                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="font-medium text-sm">Div {d.title.split(' ')[2] || ''}</span>
+                              <div className="flex items-center gap-3">
+                                <input 
+                                  type="checkbox" 
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) setSelectedDivisions([...selectedDivisions, d.id]);
+                                    else setSelectedDivisions(selectedDivisions.filter(id => id !== d.id));
+                                  }}
+                                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="font-medium text-sm">Div {d.title.split(' ')[2] || ''}</span>
+                              </div>
+                              {isEnabled && <CheckCircle className="w-5 h-5 text-green-600 drop-shadow-sm" />}
                             </label>
                           );
                         })}
