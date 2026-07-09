@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus } from './actions';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection } from './actions';
 import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -13,6 +13,7 @@ export default function ElectionController() {
   const [isLoading, setIsLoading] = useState(true);
   const [unlockGrade, setUnlockGrade] = useState<string>('');
   const [selectedDivisions, setSelectedDivisions] = useState<string[]>([]);
+  const [divisionStatuses, setDivisionStatuses] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadData();
@@ -37,8 +38,12 @@ export default function ElectionController() {
 
   const loadDetails = async (id: string) => {
     try {
-      const posData = await getPositions(id);
+      const [posData, statusData] = await Promise.all([
+        getPositions(id),
+        getAllDivisionStatusesForElection(id)
+      ]);
       setPositions(posData);
+      setDivisionStatuses(statusData);
     } catch (e) {
       console.error(e);
     }
@@ -521,20 +526,26 @@ export default function ElectionController() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[160px] overflow-y-auto p-1">
-                        {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => (
-                          <label key={d.id} className={`flex items-center gap-2 text-sm p-2 rounded border cursor-pointer transition-colors ${selectedDivisions.includes(d.id) ? 'bg-blue-50 border-blue-200 text-blue-800 font-medium' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
-                            <input 
-                              type="checkbox" 
-                              checked={selectedDivisions.includes(d.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) setSelectedDivisions([...selectedDivisions, d.id]);
-                                else setSelectedDivisions(selectedDivisions.filter(id => id !== d.id));
-                              }}
-                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            Div {d.title.split(' ')[2] || ''}
-                          </label>
-                        ))}
+                        {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => {
+                          const isEnabled = divisionStatuses[d.id] || false;
+                          return (
+                            <label key={d.id} className={`flex items-center justify-between gap-2 text-sm p-2 rounded border cursor-pointer transition-colors ${selectedDivisions.includes(d.id) ? 'bg-blue-50 border-blue-200 text-blue-800 font-medium' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedDivisions.includes(d.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) setSelectedDivisions([...selectedDivisions, d.id]);
+                                    else setSelectedDivisions(selectedDivisions.filter(id => id !== d.id));
+                                  }}
+                                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                Div {d.title.split(' ')[2] || ''}
+                              </div>
+                              <div className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-slate-300'}`} title={isEnabled ? 'Voting Enabled' : 'Voting Disabled'} />
+                            </label>
+                          );
+                        })}
                       </div>
                       
                       <div className="flex gap-2 mt-2">
@@ -543,6 +554,11 @@ export default function ElectionController() {
                           onClick={async () => {
                             try {
                               await Promise.all(selectedDivisions.map(id => setDivisionVotingStatus(activeElec.id, id, true)));
+                              setDivisionStatuses(prev => {
+                                const next = { ...prev };
+                                selectedDivisions.forEach(id => next[id] = true);
+                                return next;
+                              });
                               toast.success(`Voting ENABLED for ${selectedDivisions.length} division(s)!`);
                               setSelectedDivisions([]);
                             } catch(err: any) {
@@ -558,6 +574,11 @@ export default function ElectionController() {
                           onClick={async () => {
                             try {
                               await Promise.all(selectedDivisions.map(id => setDivisionVotingStatus(activeElec.id, id, false)));
+                              setDivisionStatuses(prev => {
+                                const next = { ...prev };
+                                selectedDivisions.forEach(id => next[id] = false);
+                                return next;
+                              });
                               toast.success(`Voting DISABLED for ${selectedDivisions.length} division(s)!`);
                               setSelectedDivisions([]);
                             } catch(err: any) {

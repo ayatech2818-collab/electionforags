@@ -221,3 +221,18 @@ export async function getDivisionVotingStatus(electionId: string, divisionId: st
   if (error && error.code !== 'PGRST116') throw new Error(error.message);
   return data?.is_unlocked || false;
 }
+
+export async function getAllDivisionStatusesForElection(electionId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('election_division_voting_status')
+    .select('division_id, is_unlocked')
+    .eq('election_id', electionId);
+  
+  if (error) throw new Error(error.message);
+  
+  const statusMap: Record<string, boolean> = {};
+  data?.forEach(row => {
+    statusMap[row.division_id] = row.is_unlocked;
+  });
+  return statusMap;
+}
