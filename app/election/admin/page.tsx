@@ -54,10 +54,19 @@ export default function ElectionController() {
   const handleStatusUpdate = async (status: string) => {
     if (status === 'published') {
       toast((t) => (
-        <div className="flex flex-col gap-3">
-          <p className="font-medium text-sm">Are you sure you want to publish results? This cannot be undone.</p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 bg-purple-600 text-white rounded text-sm font-medium" onClick={async () => {
+        <div className="flex flex-col gap-4 w-[320px]">
+          <div className="flex items-start gap-4">
+            <div className="bg-purple-50 p-2.5 rounded-full shrink-0">
+              <ShieldCheck className="w-5 h-5 text-purple-600" />
+            </div>
+            <div className="flex-1 pr-2">
+              <p className="font-bold text-slate-900 text-base">Publish Results</p>
+              <p className="text-sm text-slate-500 mt-1 leading-relaxed">Are you sure you want to publish results? This cannot be undone.</p>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end mt-2 pt-2 border-t border-slate-100">
+            <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-sm font-medium transition-colors" onClick={() => toast.dismiss(t.id)}>Cancel</button>
+            <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors" onClick={async () => {
               toast.dismiss(t.id);
               await updateElectionStatus(activeElec.id, status);
               setActiveElec({ ...activeElec, status });
@@ -102,17 +111,17 @@ export default function ElectionController() {
 
   const handleRemoveCandidate = (candidateId: string) => {
     toast((t) => (
-      <div className="flex flex-col gap-4 min-w-[280px] p-1">
-        <div className="flex items-start gap-3">
-          <div className="bg-red-100 p-2 rounded-full shrink-0">
+      <div className="flex flex-col gap-4 w-[320px]">
+        <div className="flex items-start gap-4">
+          <div className="bg-red-50 p-2.5 rounded-full shrink-0">
             <Trash2 className="w-5 h-5 text-red-600" />
           </div>
-          <div>
-            <p className="font-bold text-slate-800">Remove Candidate</p>
-            <p className="text-sm text-slate-600 mt-1">Are you sure you want to remove them from this position?</p>
+          <div className="flex-1 pr-2">
+            <p className="font-bold text-slate-900 text-base">Remove Candidate</p>
+            <p className="text-sm text-slate-500 mt-1 leading-relaxed">Are you sure you want to remove them from this position?</p>
           </div>
         </div>
-        <div className="flex gap-2 justify-end mt-2">
+        <div className="flex gap-2 justify-end mt-2 pt-2 border-t border-slate-100">
           <button 
             className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-sm font-medium transition-colors" 
             onClick={() => toast.dismiss(t.id)}
@@ -141,17 +150,17 @@ export default function ElectionController() {
 
   const handleRemovePosition = (positionId: string) => {
     toast((t) => (
-      <div className="flex flex-col gap-4 min-w-[280px] p-1">
-        <div className="flex items-start gap-3">
-          <div className="bg-red-100 p-2 rounded-full shrink-0">
+      <div className="flex flex-col gap-4 w-[320px]">
+        <div className="flex items-start gap-4">
+          <div className="bg-red-50 p-2.5 rounded-full shrink-0">
             <Trash2 className="w-5 h-5 text-red-600" />
           </div>
-          <div>
-            <p className="font-bold text-slate-800">Delete Position</p>
-            <p className="text-sm text-slate-600 mt-1">Are you sure? All candidates under it will also be removed.</p>
+          <div className="flex-1 pr-2">
+            <p className="font-bold text-slate-900 text-base">Delete Position</p>
+            <p className="text-sm text-slate-500 mt-1 leading-relaxed">Are you sure? All candidates under it will also be removed.</p>
           </div>
         </div>
-        <div className="flex gap-2 justify-end mt-2">
+        <div className="flex gap-2 justify-end mt-2 pt-2 border-t border-slate-100">
           <button 
             className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-sm font-medium transition-colors" 
             onClick={() => toast.dismiss(t.id)}
