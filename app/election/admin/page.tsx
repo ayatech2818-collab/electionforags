@@ -583,6 +583,7 @@ export default function ElectionController() {
                                 return next;
                               });
                               toast.success(`Voting DISABLED for ${selectedDivisions.length} division(s)!`);
+                              setSelectedDivisions([]);
                             } catch(err: any) {
                               toast.error(err.message);
                             }
