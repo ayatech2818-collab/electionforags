@@ -197,15 +197,27 @@ export async function removePosition(positionId: string) {
   return true;
 }
 
-export async function unlockDivisionVoting(electionId: string, divisionId: string) {
+export async function setDivisionVotingStatus(electionId: string, divisionId: string, isUnlocked: boolean) {
   const { error } = await supabaseAdmin
     .from('election_division_voting_status')
     .upsert({ 
       election_id: electionId, 
       division_id: divisionId, 
-      is_unlocked: true 
+      is_unlocked: isUnlocked 
     }, { onConflict: 'election_id, division_id' });
   
   if (error) throw new Error(error.message);
   return true;
+}
+
+export async function getDivisionVotingStatus(electionId: string, divisionId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('election_division_voting_status')
+    .select('is_unlocked')
+    .eq('election_id', electionId)
+    .eq('division_id', divisionId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') throw new Error(error.message);
+  return data?.is_unlocked || false;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, unlockDivisionVoting } from './actions';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus } from './actions';
 import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -13,6 +13,7 @@ export default function ElectionController() {
   const [isLoading, setIsLoading] = useState(true);
   const [unlockGrade, setUnlockGrade] = useState<string>('');
   const [unlockClassId, setUnlockClassId] = useState<string>('');
+  const [isDivisionUnlocked, setIsDivisionUnlocked] = useState<boolean>(false);
 
   useEffect(() => {
     loadData();
@@ -21,6 +22,16 @@ export default function ElectionController() {
   useEffect(() => {
     if (activeElec) loadDetails(activeElec.id);
   }, [activeElec]);
+
+  useEffect(() => {
+    async function checkStatus() {
+      if (activeElec && unlockClassId) {
+        const status = await getDivisionVotingStatus(activeElec.id, unlockClassId);
+        setIsDivisionUnlocked(status);
+      }
+    }
+    checkStatus();
+  }, [unlockClassId, activeElec]);
 
   const loadData = async () => {
     try {
@@ -514,16 +525,25 @@ export default function ElectionController() {
                     disabled={!unlockClassId}
                     onClick={async () => {
                       try {
-                        await unlockDivisionVoting(activeElec.id, unlockClassId);
-                        toast.success('Voting link is now accessible for this division!');
-                        setUnlockClassId('');
+                        const newStatus = !isDivisionUnlocked;
+                        await setDivisionVotingStatus(activeElec.id, unlockClassId, newStatus);
+                        setIsDivisionUnlocked(newStatus);
+                        if (newStatus) {
+                          toast.success('Voting is now ENABLED for this division!');
+                        } else {
+                          toast.success('Voting is now DISABLED for this division!');
+                        }
                       } catch(err: any) {
                         toast.error(err.message);
                       }
                     }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                    className={`text-white px-4 py-2 rounded font-medium disabled:opacity-50 transition-colors ${
+                      isDivisionUnlocked 
+                        ? 'bg-red-600 hover:bg-red-700' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                   >
-                    Unlock Voting
+                    {isDivisionUnlocked ? 'Disable Voting' : 'Enable Voting'}
                   </button>
                 </div>
               </div>
