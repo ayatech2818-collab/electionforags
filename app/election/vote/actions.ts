@@ -60,6 +60,18 @@ export async function validateCode(plaintextCode: string) {
 
   // We need the student's class_id for the session
   const { data: student } = await supabaseAdmin.from('students').select('class_id').eq('id', matchedCode.student_id).single();
+
+  // Check if division voting is unlocked
+  const { data: unlockStatus } = await supabaseAdmin
+    .from('election_division_voting_status')
+    .select('is_unlocked')
+    .eq('election_id', matchedCode.election_id)
+    .eq('division_id', student?.class_id)
+    .single();
+
+  if (!unlockStatus?.is_unlocked) {
+    return { success: false, error: 'Voting for your division has not been unlocked by the Controller yet.' };
+  }
   
   if (!session) {
     // Create new session

@@ -196,3 +196,16 @@ export async function removePosition(positionId: string) {
   if (error) throw new Error(error.message);
   return true;
 }
+
+export async function unlockDivisionVoting(electionId: string, divisionId: string) {
+  const { error } = await supabaseAdmin
+    .from('election_division_voting_status')
+    .upsert({ 
+      election_id: electionId, 
+      division_id: divisionId, 
+      is_unlocked: true 
+    }, { onConflict: 'election_id, division_id' });
+  
+  if (error) throw new Error(error.message);
+  return true;
+}

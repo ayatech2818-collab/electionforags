@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition } from './actions';
-import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck } from 'lucide-react';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, unlockDivisionVoting } from './actions';
+import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ElectionController() {
@@ -11,6 +11,7 @@ export default function ElectionController() {
   const [positions, setPositions] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [unlockClassId, setUnlockClassId] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -475,6 +476,38 @@ export default function ElectionController() {
                   <button onClick={() => handleStatusUpdate('open')} className={`p-2 rounded border font-medium ${activeElec.status === 'open' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>Open (Polling)</button>
                   <button onClick={() => handleStatusUpdate('closed')} className={`p-2 rounded border font-medium ${activeElec.status === 'closed' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Closed</button>
                   <button onClick={() => handleStatusUpdate('published')} className={`p-2 rounded border font-medium ${activeElec.status === 'published' ? 'bg-green-600 text-white' : 'text-slate-600'}`}>Publish Results</button>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border shadow-sm">
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900"><Unlock className="w-5 h-5 text-blue-500" /> Voting Access Control</h2>
+                <div className="flex flex-col gap-3">
+                  <p className="text-sm text-slate-500 mb-2">Unlock the voting link for a specific division.</p>
+                  <select 
+                    className="border p-2 text-sm rounded w-full bg-white text-slate-900"
+                    value={unlockClassId}
+                    onChange={(e) => setUnlockClassId(e.target.value)}
+                  >
+                    <option value="" disabled>Select Division</option>
+                    {classes.map(c => (
+                      <option key={c.id} value={c.id}>{c.title}</option>
+                    ))}
+                  </select>
+                  <button 
+                    disabled={!unlockClassId}
+                    onClick={async () => {
+                      try {
+                        await unlockDivisionVoting(activeElec.id, unlockClassId);
+                        toast.success('Voting link is now accessible for this division!');
+                        setUnlockClassId('');
+                      } catch(err: any) {
+                        toast.error(err.message);
+                      }
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                  >
+                    Unlock Voting
+                  </button>
                 </div>
               </div>
 
