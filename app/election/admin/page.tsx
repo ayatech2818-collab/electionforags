@@ -547,11 +547,6 @@ export default function ElectionController() {
                                 />
                                 <span className="font-medium text-sm">Div {d.title.split(' ')[2] || ''}</span>
                               </div>
-                              {isEnabled ? (
-                                <span className="text-xs font-bold text-green-700 bg-green-200/50 px-2 py-1 rounded">ENABLED</span>
-                              ) : (
-                                <span className="text-xs font-bold text-slate-500 bg-slate-200/50 px-2 py-1 rounded">DISABLED</span>
-                              )}
                             </label>
                           );
                         })}
@@ -569,7 +564,6 @@ export default function ElectionController() {
                                 return next;
                               });
                               toast.success(`Voting ENABLED for ${selectedDivisions.length} division(s)!`);
-                              setSelectedDivisions([]);
                             } catch(err: any) {
                               toast.error(err.message);
                             }
@@ -589,7 +583,6 @@ export default function ElectionController() {
                                 return next;
                               });
                               toast.success(`Voting DISABLED for ${selectedDivisions.length} division(s)!`);
-                              setSelectedDivisions([]);
                             } catch(err: any) {
                               toast.error(err.message);
                             }
