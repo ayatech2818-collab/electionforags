@@ -507,6 +507,7 @@ export default function ElectionController() {
                     <div className="flex flex-col gap-3 mt-2 border-t pt-4 border-slate-100">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Divisions</p>
+                      </div>
                       <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto p-1 mt-4">
                         {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => {
                           const isEnabled = divisionStatuses[d.id] || false;
