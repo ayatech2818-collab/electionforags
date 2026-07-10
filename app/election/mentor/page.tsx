@@ -205,7 +205,7 @@ export default function MentorPortal() {
             <p className="text-slate-500 text-sm mt-1">Manage and download voter ID cards for your class.</p>
           </div>
           
-          <div className="flex gap-4 mt-4 md:mt-0">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 mt-4 md:mt-0 w-full md:w-auto">
             <select 
               value={activeElection}
               onChange={e => setActiveElection(e.target.value)}
@@ -297,10 +297,11 @@ export default function MentorPortal() {
                           {student.phone ? (
                             <button 
                               onClick={() => handleSendWhatsapp(student)}
-                              className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium border border-transparent hover:border-emerald-200"
+                              className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 sm:px-3 py-1.5 rounded-lg transition-colors text-xs font-medium border border-transparent hover:border-emerald-200"
                             >
-                              <MessageCircle className="w-3.5 h-3.5" /> 
-                              {student.hasCode ? 'Regenerate & Send' : 'Generate & Send'}
+                              <MessageCircle className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> 
+                              <span className="hidden sm:inline">{student.hasCode ? 'Regenerate & Send' : 'Generate & Send'}</span>
+                              <span className="sm:hidden">{student.hasCode ? 'Send New' : 'Send'}</span>
                             </button>
                           ) : (
                             <span className="text-xs text-slate-400 italic px-2">No Phone #</span>
@@ -309,9 +310,9 @@ export default function MentorPortal() {
                           {student.hasCode && elections.find(e => e.id === activeElection)?.allow_mentor_reset && (
                             <button 
                               onClick={() => handleRegenerate(student.id, student.full_name)}
-                              className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
+                              className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 px-2 sm:px-3 py-1.5 rounded-lg transition-colors text-xs font-medium"
                             >
-                              <RefreshCw className="w-3.5 h-3.5" /> Reset
+                              <RefreshCw className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Reset</span>
                             </button>
                           )}
                         </div>

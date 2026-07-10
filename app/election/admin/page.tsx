@@ -295,15 +295,15 @@ export default function ElectionController() {
   return (
     <div className="min-h-screen bg-slate-50 p-6 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
-        <header className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border shadow-sm mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Election Controller Configuration</h1>
-            <p className="text-slate-500">Configure elections, positions, and candidates.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Election Controller Configuration</h1>
+            <p className="text-slate-500 text-sm md:text-base">Configure elections, positions, and candidates.</p>
           </div>
           <select 
             value={activeElec?.id || ''} 
             onChange={e => setActiveElec(elections.find(el => el.id === e.target.value))}
-            className="p-2 border rounded-md"
+            className="p-2 border rounded-md w-full md:w-auto"
           >
             {elections.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
@@ -321,8 +321,8 @@ export default function ElectionController() {
         )}
 
         {activeElec && (
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
               
               <div className="bg-white p-6 rounded-2xl border shadow-sm">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900"><Target className="text-blue-500"/> Positions & Candidates</h2>
