@@ -326,9 +326,9 @@ export default function ElectionController() {
               
               <div className="bg-white p-6 rounded-2xl border shadow-sm">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900"><Target className="text-blue-500"/> Positions & Candidates</h2>
-                <form onSubmit={handleAddPosition} className="flex gap-4 mb-6">
+                <form onSubmit={handleAddPosition} className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6">
                   <input name="name" placeholder="New Position (e.g. Head Girl)" className="border p-2 rounded flex-1 text-slate-900 placeholder:text-slate-500 bg-white" required />
-                  <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Add Position</button>
+                  <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded shrink-0 whitespace-nowrap">Add Position</button>
                 </form>
 
                 <div className="space-y-4">
@@ -352,23 +352,23 @@ export default function ElectionController() {
                             {pos.election_candidates
                               ?.sort((a: any, b: any) => a.id.localeCompare(b.id))
                               .map((c: any, index: number) => (
-                              <li key={c.id} className="text-sm font-medium flex flex-wrap items-center justify-between gap-2 p-2 border rounded bg-slate-50">
-                                <div className="flex items-center gap-2">
+                              <li key={c.id} className="text-sm font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded bg-slate-50">
+                                <div className="flex items-center gap-3">
                                   {c.photo_url ? (
-                                    <img src={c.photo_url} alt="photo" className="w-7 h-7 rounded-full object-cover border border-slate-200" />
+                                    <img src={c.photo_url} alt="photo" className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
                                   ) : (
-                                    <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
                                       <User className="w-4 h-4 text-slate-400" />
                                     </div>
                                   )}
                                   {c.symbol_url ? (
-                                    <img src={c.symbol_url} alt="symbol" className="w-7 h-7 object-contain" />
+                                    <img src={c.symbol_url} alt="symbol" className="w-8 h-8 object-contain shrink-0" />
                                   ) : (
-                                    <span className="text-xl">{['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]}</span>
+                                    <span className="text-2xl shrink-0">{['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]}</span>
                                   )}
-                                  <span>{c.students?.full_name}</span>
+                                  <span className="leading-tight">{c.students?.full_name}</span>
                                 </div>
-                                <div className="relative shrink-0 flex items-center gap-1">
+                                <div className="relative shrink-0 flex items-center gap-2 self-start sm:self-auto ml-11 sm:ml-0">
                                   <div className="relative">
                                     <input 
                                       type="file" 
