@@ -507,91 +507,37 @@ export default function ElectionController() {
                     <div className="flex flex-col gap-3 mt-2 border-t pt-4 border-slate-100">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Divisions</p>
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => {
-                              const allIds = classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => d.id);
-                              setSelectedDivisions(allIds);
-                            }}
-                            className="text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded"
-                          >
-                            Select All
-                          </button>
-                          <button 
-                            onClick={() => setSelectedDivisions([])}
-                            className="text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-100 px-2 py-1 rounded"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto p-1">
+                      <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto p-1 mt-4">
                         {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => {
                           const isEnabled = divisionStatuses[d.id] || false;
-                          const isSelected = selectedDivisions.includes(d.id);
                           return (
-                            <label key={d.id} className={`flex items-center justify-between gap-3 text-sm p-2 rounded-md border cursor-pointer transition-colors ${
+                            <div key={d.id} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
                               isEnabled 
-                                ? 'bg-green-100 border-green-300 text-green-900' 
-                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                            } ${isSelected ? 'ring-2 ring-blue-500 border-blue-500' : ''}`}>
-                              <div className="flex items-center gap-3">
-                                <input 
-                                  type="checkbox" 
-                                  checked={isSelected}
-                                  onChange={(e) => {
-                                    if (e.target.checked) setSelectedDivisions([...selectedDivisions, d.id]);
-                                    else setSelectedDivisions(selectedDivisions.filter(id => id !== d.id));
-                                  }}
-                                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span className="font-medium text-sm">Div {d.title.split(' ')[2] || ''}</span>
-                              </div>
-                            </label>
+                                ? 'bg-emerald-50 border-emerald-200' 
+                                : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                            }`}>
+                              <span className={`font-semibold ${isEnabled ? 'text-emerald-900' : 'text-slate-700'}`}>
+                                Div {d.title.split(' ')[2] || ''}
+                              </span>
+                              
+                              <button
+                                onClick={async () => {
+                                  const newStatus = !isEnabled;
+                                  try {
+                                    await setDivisionVotingStatus(activeElec.id, d.id, newStatus);
+                                    setDivisionStatuses(prev => ({ ...prev, [d.id]: newStatus }));
+                                    toast.success(`Voting ${newStatus ? 'ENABLED' : 'DISABLED'} for Div ${d.title.split(' ')[2] || ''}`);
+                                  } catch (e: any) {
+                                    toast.error(e.message);
+                                  }
+                                }}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                              >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                              </button>
+                            </div>
                           );
                         })}
-                      </div>
-                      
-                      <div className="flex gap-2 mt-2">
-                        <button 
-                          disabled={selectedDivisions.length === 0}
-                          onClick={async () => {
-                            try {
-                              await Promise.all(selectedDivisions.map(id => setDivisionVotingStatus(activeElec.id, id, true)));
-                              setDivisionStatuses(prev => {
-                                const next = { ...prev };
-                                selectedDivisions.forEach(id => next[id] = true);
-                                return next;
-                              });
-                              toast.success(`Voting ENABLED for ${selectedDivisions.length} division(s)!`);
-                            } catch(err: any) {
-                              toast.error(err.message);
-                            }
-                          }}
-                          className="flex-1 bg-blue-600 text-white px-3 py-1.5 text-sm rounded font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors"
-                        >
-                          Enable
-                        </button>
-                        <button 
-                          disabled={selectedDivisions.length === 0}
-                          onClick={async () => {
-                            try {
-                              await Promise.all(selectedDivisions.map(id => setDivisionVotingStatus(activeElec.id, id, false)));
-                              setDivisionStatuses(prev => {
-                                const next = { ...prev };
-                                selectedDivisions.forEach(id => next[id] = false);
-                                return next;
-                              });
-                              toast.success(`Voting DISABLED for ${selectedDivisions.length} division(s)!`);
-                              setSelectedDivisions([]);
-                            } catch(err: any) {
-                              toast.error(err.message);
-                            }
-                          }}
-                          className="flex-1 bg-red-600 text-white px-3 py-1.5 text-sm rounded font-medium disabled:opacity-50 hover:bg-red-700 transition-colors"
-                        >
-                          Disable
-                        </button>
                       </div>
 
                     </div>
