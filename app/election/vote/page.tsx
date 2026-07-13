@@ -178,7 +178,7 @@ export default function StudentVotingBooth() {
                           <div className="flex items-center gap-4">
                             <span className="text-5xl drop-shadow-sm flex items-center justify-center shrink-0 w-16 h-16">
                               {c.symbol_url ? (
-                                <img src={c.symbol_url} alt="symbol" className="w-full h-full object-contain" />
+                                <img src={c.symbol_url} alt="symbol" className="w-full h-full object-cover rounded-full shadow-sm bg-white" />
                               ) : (
                                 <span>
                                   {['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]}
