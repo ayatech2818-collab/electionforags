@@ -8,6 +8,15 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#ffffff'
   },
+  pageTitle: {
+    width: '100%',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 10,
+    color: '#2d3748',
+  },
   card: {
     width: '45%',
     height: 200, // A bit taller for more info
@@ -109,9 +118,14 @@ interface VoterCard {
   photoUrl?: string; // Optional
 }
 
-export const IdCardTemplate = ({ cards, electionTitle, electionDate }: { cards: VoterCard[], electionTitle: string, electionDate: string }) => (
+export const IdCardTemplate = ({ cards, electionTitle, electionDate }: { cards: VoterCard[], electionTitle: string, electionDate: string }) => {
+  const className = cards.length > 0 ? cards[0].className : 'Unknown Class';
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
+      <View style={styles.pageTitle}>
+        <Text>{className} - Voter ID Cards (Total Students: {cards.length})</Text>
+      </View>
       {cards.map((card, index) => {
         const initials = card.studentName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         
@@ -149,4 +163,5 @@ export const IdCardTemplate = ({ cards, electionTitle, electionDate }: { cards: 
       })}
     </Page>
   </Document>
-);
+  );
+};

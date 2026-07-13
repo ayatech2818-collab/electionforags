@@ -72,7 +72,7 @@ export default function MentorPortal() {
   useEffect(() => {
     const channel = supabase.channel('elections-changes')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'elections' }, (payload) => {
-        setElections(prev => prev.map(e => e.id === payload.new.id ? { ...e, allow_mentor_reset: payload.new.allow_mentor_reset } : e));
+        setElections(prev => prev.map(e => e.id === payload.new.id ? { ...e, allow_mentor_reset: payload.new.allow_mentor_reset, allow_mentor_generate_all: payload.new.allow_mentor_generate_all } : e));
       })
       .subscribe();
 
@@ -171,15 +171,14 @@ export default function MentorPortal() {
       else if (formattedPhone.length < 10) formattedPhone = '91' + formattedPhone;
       else if (formattedPhone.length === 11 && formattedPhone.startsWith('0')) formattedPhone = '91' + formattedPhone.substring(1);
       
-      const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(`Hi ${student.full_name}, here is your secure digital Voter ID Card for the AGS Elections.\n\nYou can cast your vote here: https://agselection.vercel.app/election/vote`)}`;
+      const message = `Hi ${student.full_name},\n\nYour secret voter code for the AGS Elections is:\n*${plaintextCode}*\n\nYou can cast your vote here:\nhttps://agselection.vercel.app/election/vote\n\nKeep this code strictly confidential. Do not share it with anyone.`;
+      const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
       
-      // Trigger the image generation effect
-      setGeneratingCard({
-        student,
-        code: plaintextCode,
-        electionName: elections.find(e => e.id === activeElection)?.name || 'AGS Elections',
-        url
-      });
+      // Open WhatsApp directly
+      window.open(url, '_blank');
+      
+      // Refresh to show status changed to 'Issued'
+      loadRoster(activeElection, activeDivision);
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -295,12 +294,16 @@ export default function MentorPortal() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {roster.map(student => (
+                  {roster.map(student => {
+                    const currentElec = elections.find(e => e.id === activeElection);
+                    const effectiveHasCode = currentElec?.allow_mentor_generate_all ? false : student.hasCode;
+                    
+                    return (
                     <tr key={student.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-900">{student.full_name}</td>
                       <td className="px-6 py-4 text-slate-500">{student.roll_no}</td>
                       <td className="px-6 py-4">
-                        {student.hasCode ? (
+                        {effectiveHasCode ? (
                           <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <CheckCircle className="w-3.5 h-3.5" /> Issued
                           </span>
@@ -312,7 +315,7 @@ export default function MentorPortal() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {!student.hasCode && (
+                          {!effectiveHasCode && (
                             student.phone ? (
                               <button 
                                 onClick={() => handleSendWhatsapp(student)}
@@ -338,7 +341,7 @@ export default function MentorPortal() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>

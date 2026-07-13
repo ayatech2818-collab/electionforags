@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection, updateMentorResetAccess, updateStudentName } from './actions';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection, updateMentorResetAccess, updateStudentName, updateMentorGenerateAllAccess } from './actions';
 import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,7 @@ export default function ElectionController() {
   const [divisionStatuses, setDivisionStatuses] = useState<Record<string, boolean>>({});
   const [downloadGrade, setDownloadGrade] = useState<string>('');
   const [downloadDivision, setDownloadDivision] = useState<string>('');
+  const [divisionStudentCount, setDivisionStudentCount] = useState<number | null>(null);
   const [editingCandidate, setEditingCandidate] = useState<{id: string, name: string} | null>(null);
 
   useEffect(() => {
@@ -25,6 +26,16 @@ export default function ElectionController() {
   useEffect(() => {
     if (activeElec) loadDetails(activeElec.id);
   }, [activeElec]);
+
+  useEffect(() => {
+    if (downloadDivision) {
+      getStudentsByDivision(downloadDivision)
+        .then(students => setDivisionStudentCount(students.length))
+        .catch(console.error);
+    } else {
+      setDivisionStudentCount(null);
+    }
+  }, [downloadDivision]);
 
   const loadData = async () => {
     try {
@@ -622,9 +633,29 @@ export default function ElectionController() {
                         toast.error(e.message);
                       }
                     }}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${activeElec.allow_mentor_reset ? 'bg-blue-600' : 'bg-slate-300'}`}
+                    className={`shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${activeElec.allow_mentor_reset ? 'bg-blue-600' : 'bg-slate-300'}`}
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${activeElec.allow_mentor_reset ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50 mt-3">
+                  <span className="font-medium text-slate-700 text-sm">Enable "Generate & Send" for ALL (even if issued)</span>
+                  <button
+                    onClick={async () => {
+                      const newStatus = !activeElec.allow_mentor_generate_all;
+                      try {
+                        await updateMentorGenerateAllAccess(activeElec.id, newStatus);
+                        setActiveElec({ ...activeElec, allow_mentor_generate_all: newStatus });
+                        setElections(elections.map(e => e.id === activeElec.id ? { ...e, allow_mentor_generate_all: newStatus } : e));
+                        toast.success(`Mentor generate all access ${newStatus ? 'enabled' : 'disabled'}`);
+                      } catch (e: any) {
+                        toast.error(e.message);
+                      }
+                    }}
+                    className={`shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${activeElec.allow_mentor_generate_all ? 'bg-blue-600' : 'bg-slate-300'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${activeElec.allow_mentor_generate_all ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
                 </div>
               </div>
@@ -663,6 +694,13 @@ export default function ElectionController() {
                         <option key={d.id} value={d.id}>Div {d.title.split(' ')[2] || ''}</option>
                       ))}
                     </select>
+                  )}
+                  
+                  {downloadDivision && divisionStudentCount !== null && (
+                    <div className="text-sm text-slate-600 bg-purple-50 p-3 rounded-lg border border-purple-100 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-purple-600" />
+                      <span><strong>{divisionStudentCount}</strong> students found in this division.</span>
+                    </div>
                   )}
 
                   <button 
