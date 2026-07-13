@@ -294,17 +294,19 @@ export default function MentorPortal() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {student.phone ? (
-                            <button 
-                              onClick={() => handleSendWhatsapp(student)}
-                              className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 sm:px-3 py-1.5 rounded-lg transition-colors text-xs font-medium border border-transparent hover:border-emerald-200"
-                            >
-                              <MessageCircle className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> 
-                              <span className="hidden sm:inline">{student.hasCode ? 'Regenerate & Send' : 'Generate & Send'}</span>
-                              <span className="sm:hidden">{student.hasCode ? 'Send New' : 'Send'}</span>
-                            </button>
-                          ) : (
-                            <span className="text-xs text-slate-400 italic px-2">No Phone #</span>
+                          {!student.hasCode && (
+                            student.phone ? (
+                              <button 
+                                onClick={() => handleSendWhatsapp(student)}
+                                className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 sm:px-3 py-1.5 rounded-lg transition-colors text-xs font-medium border border-transparent hover:border-emerald-200"
+                              >
+                                <MessageCircle className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> 
+                                <span className="hidden sm:inline">Generate & Send</span>
+                                <span className="sm:hidden">Send</span>
+                              </button>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic px-2">No Phone #</span>
+                            )
                           )}
                           
                           {student.hasCode && elections.find(e => e.id === activeElection)?.allow_mentor_reset && (
