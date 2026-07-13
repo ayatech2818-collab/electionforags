@@ -169,27 +169,30 @@ export default function StudentVotingBooth() {
                         <button
                           key={c.id}
                           onClick={() => handleSelect(pos.id, c.id)}
-                          className={`flex flex-col items-center justify-center p-6 rounded-3xl border-4 text-center transition-all ${
+                          className={`flex items-center justify-between p-4 rounded-2xl border-2 text-left transition-all ${
                             selections[pos.id] === c.id 
-                              ? 'border-blue-500 bg-blue-50 shadow-blue-500/20 shadow-lg scale-[1.02]' 
-                              : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
+                              ? 'border-blue-500 bg-blue-50 shadow-md scale-[1.01]' 
+                              : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-slate-50'
                           }`}
                         >
-                          <div className={`mb-4 w-8 h-8 rounded-full border-4 flex items-center justify-center transition-colors ${selections[pos.id] === c.id ? 'border-blue-500' : 'border-slate-200'}`}>
-                            {selections[pos.id] === c.id && <div className="w-4 h-4 bg-blue-500 rounded-full" />}
+                          <div className="flex items-center gap-4">
+                            <span className="text-5xl drop-shadow-sm flex items-center justify-center shrink-0 w-16 h-16">
+                              {c.symbol_url ? (
+                                <img src={c.symbol_url} alt="symbol" className="w-full h-full object-contain" />
+                              ) : (
+                                <span>
+                                  {['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]}
+                                </span>
+                              )}
+                            </span>
+                            <span className={`font-bold text-lg leading-tight transition-colors ${selections[pos.id] === c.id ? 'text-blue-900' : 'text-slate-800'}`}>
+                              {c.students?.full_name}
+                            </span>
                           </div>
-                          <span className="text-8xl drop-shadow-md mb-2 flex justify-center w-full relative">
-                            {c.photo_url && (
-                              <img src={c.photo_url} alt="Candidate" className="absolute -top-6 -right-2 w-20 h-20 rounded-full border-4 border-white object-cover shadow-lg z-10 bg-slate-100" />
-                            )}
-                            {c.symbol_url ? (
-                              <img src={c.symbol_url} alt="symbol" className="w-32 h-32 object-contain relative z-0" />
-                            ) : (
-                              <span className="relative z-0">
-                                {['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]}
-                              </span>
-                            )}
-                          </span>
+                          
+                          <div className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none ${selections[pos.id] === c.id ? 'bg-blue-600' : 'bg-slate-300'}`}>
+                            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${selections[pos.id] === c.id ? 'translate-x-6' : 'translate-x-1'}`} />
+                          </div>
                         </button>
                       ))}
                     </div>

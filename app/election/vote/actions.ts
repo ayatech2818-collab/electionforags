@@ -131,7 +131,7 @@ export async function getBallot(electionId: string, divisionId: string) {
   // In Phase 1, eligibility_scope is JSONB. For simplicity, we assume null means all, or it contains the division_id.
   const { data: positions, error } = await supabaseAdmin
     .from('election_positions')
-    .select('*, election_candidates(id, students(full_name))')
+    .select('*, election_candidates(*, students(id, full_name, classes(title)))')
     .eq('election_id', electionId)
     .order('display_order', { ascending: true });
 
