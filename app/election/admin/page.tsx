@@ -408,7 +408,7 @@ export default function ElectionController() {
                                         />
                                         <button 
                                           onClick={async () => {
-                                            if (editingCandidate.name.trim() && editingCandidate.name.trim() !== c.students?.full_name) {
+                                            if (editingCandidate && editingCandidate.name.trim() && editingCandidate.name.trim() !== c.students?.full_name) {
                                               try {
                                                 await updateStudentName(c.students?.id, editingCandidate.name.trim());
                                                 toast.success("Name updated successfully!");
