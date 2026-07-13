@@ -571,9 +571,9 @@ export default function ElectionController() {
                 <p className="text-sm text-slate-500 mb-4">
                   Generate and download PDF sheets containing secret voter codes for a specific division. This automatically issues secure codes to any students who don't have them yet.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex flex-col gap-3">
                   <select 
-                    className="border p-2 text-sm rounded flex-1 bg-white text-slate-900"
+                    className="border p-2 text-sm rounded w-full bg-white text-slate-900"
                     value={downloadGrade}
                     onChange={(e) => {
                       setDownloadGrade(e.target.value);
@@ -588,7 +588,7 @@ export default function ElectionController() {
                   
                   {downloadGrade && (
                     <select 
-                      className="border p-2 text-sm rounded flex-1 bg-white text-slate-900"
+                      className="border p-2 text-sm rounded w-full bg-white text-slate-900"
                       value={downloadDivision}
                       onChange={(e) => setDownloadDivision(e.target.value)}
                     >
@@ -604,7 +604,7 @@ export default function ElectionController() {
                     onClick={() => {
                       window.open(`/api/election/generate-ids?electionId=${activeElec.id}&divisionId=${downloadDivision}&mentorId=system`, '_blank');
                     }}
-                    className="bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-purple-700 transition-colors whitespace-nowrap flex items-center justify-center gap-2"
+                    className="w-full bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
                   >
                     <Download className="w-4 h-4" /> Download PDF
                   </button>
