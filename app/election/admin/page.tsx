@@ -488,61 +488,47 @@ export default function ElectionController() {
               <div className="bg-white p-6 rounded-2xl border shadow-sm">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900"><Unlock className="w-5 h-5 text-blue-500" /> Voting Access Control</h2>
                 <div className="flex flex-col gap-3">
-                  <p className="text-sm text-slate-500 mb-2">Unlock the voting link for a specific division.</p>
-                  <select 
-                    className="border p-2 text-sm rounded w-full bg-white text-slate-900"
-                    value={unlockGrade}
-                    onChange={(e) => {
-                      setUnlockGrade(e.target.value);
-                      setSelectedDivisions([]);
-                    }}
-                  >
-                    <option value="" disabled>Select Grade</option>
-                    {Array.from(new Set(classes.map(d => d.title.split(' ')[1]).filter(Boolean))).sort().map(g => (
-                      <option key={g} value={g as string}>Grade {g as string}</option>
-                    ))}
-                  </select>
+                  <p className="text-sm text-slate-500 mb-2">Unlock the voting link for an entire grade.</p>
+                  
+                  <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto p-1 mt-2">
+                    {Array.from(new Set(classes.map(d => d.title.split(' ')[1]).filter(Boolean))).sort().map(g => {
+                      const gradeString = g as string;
+                      const gradeDivisions = classes.filter(d => d.title.split(' ')[1] === gradeString);
+                      const isGradeEnabled = gradeDivisions.some(d => divisionStatuses[d.id]);
 
-                  {unlockGrade && (
-                    <div className="flex flex-col gap-3 mt-2 border-t pt-4 border-slate-100">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Divisions</p>
-                      </div>
-                      <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto p-1 mt-4">
-                        {classes.filter(d => d.title.split(' ')[1] === unlockGrade).map(d => {
-                          const isEnabled = divisionStatuses[d.id] || false;
-                          return (
-                            <div key={d.id} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                              isEnabled 
-                                ? 'bg-emerald-50 border-emerald-200' 
-                                : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                            }`}>
-                              <span className={`font-semibold ${isEnabled ? 'text-emerald-900' : 'text-slate-700'}`}>
-                                Div {d.title.split(' ')[2] || ''}
-                              </span>
-                              
-                              <button
-                                onClick={async () => {
-                                  const newStatus = !isEnabled;
-                                  try {
-                                    await setDivisionVotingStatus(activeElec.id, d.id, newStatus);
-                                    setDivisionStatuses(prev => ({ ...prev, [d.id]: newStatus }));
-                                    toast.success(`Voting ${newStatus ? 'ENABLED' : 'DISABLED'} for Div ${d.title.split(' ')[2] || ''}`);
-                                  } catch (e: any) {
-                                    toast.error(e.message);
-                                  }
-                                }}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
-                              >
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                    </div>
-                  )}
+                      return (
+                        <div key={gradeString} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                          isGradeEnabled 
+                            ? 'bg-emerald-50 border-emerald-200' 
+                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                        }`}>
+                          <span className={`font-semibold ${isGradeEnabled ? 'text-emerald-900' : 'text-slate-700'}`}>
+                            Grade {gradeString}
+                          </span>
+                          
+                          <button
+                            onClick={async () => {
+                              const newStatus = !isGradeEnabled;
+                              try {
+                                await Promise.all(gradeDivisions.map(d => setDivisionVotingStatus(activeElec.id, d.id, newStatus)));
+                                setDivisionStatuses(prev => {
+                                  const next = { ...prev };
+                                  gradeDivisions.forEach(d => next[d.id] = newStatus);
+                                  return next;
+                                });
+                                toast.success(`Voting ${newStatus ? 'ENABLED' : 'DISABLED'} for Grade ${gradeString}`);
+                              } catch (e: any) {
+                                toast.error(e.message);
+                              }
+                            }}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isGradeEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isGradeEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
