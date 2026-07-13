@@ -385,12 +385,12 @@ export default function ElectionController() {
                                       <div className="flex items-center gap-2 mt-1">
                                         <input
                                           type="text"
-                                          value={editingCandidate.name}
-                                          onChange={(e) => setEditingCandidate({ ...editingCandidate, name: e.target.value })}
+                                          value={editingCandidate?.name || ''}
+                                          onChange={(e) => editingCandidate && setEditingCandidate({ ...editingCandidate, name: e.target.value })}
                                           className="border border-blue-400 p-1.5 rounded text-sm w-48 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
                                           autoFocus
                                           onKeyDown={async (e) => {
-                                            if (e.key === 'Enter') {
+                                            if (e.key === 'Enter' && editingCandidate) {
                                               if (editingCandidate.name.trim() && editingCandidate.name.trim() !== c.students?.full_name) {
                                                 try {
                                                   await updateStudentName(c.students?.id, editingCandidate.name.trim());
