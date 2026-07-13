@@ -185,9 +185,16 @@ export default function StudentVotingBooth() {
                                 </span>
                               )}
                             </span>
-                            <span className={`font-bold text-lg leading-tight transition-colors ${selections[pos.id] === c.id ? 'text-blue-900' : 'text-slate-800'}`}>
-                              {c.students?.full_name}
-                            </span>
+                            <div className="flex flex-col gap-1">
+                              <span className={`font-bold text-lg leading-tight transition-colors ${selections[pos.id] === c.id ? 'text-blue-900' : 'text-slate-800'}`}>
+                                {c.students?.full_name}
+                              </span>
+                              {c.students?.classes?.title && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded w-max uppercase tracking-wider transition-colors ${selections[pos.id] === c.id ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                                  {c.students.classes.title.split(' ').slice(0, 2).join(' ')}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           
                           <div className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none ${selections[pos.id] === c.id ? 'bg-blue-600' : 'bg-slate-300'}`}>
@@ -209,7 +216,7 @@ export default function StudentVotingBooth() {
             disabled={!isComplete || isSubmitting}
             className="w-full bg-slate-900 hover:bg-slate-800 text-white text-lg font-bold py-5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
           >
-            {isSubmitting ? <><Loader2 className="w-6 h-6 animate-spin" /> Casting Vote...</> : 'Cast Anonymous Ballot'}
+            {isSubmitting ? <><Loader2 className="w-6 h-6 animate-spin" /> Submitting...</> : 'Submit your Vote'}
           </button>
           {!isComplete && (
             <p className="text-center text-slate-500 text-sm mt-3 font-medium">You must select a candidate for all positions before submitting.</p>
