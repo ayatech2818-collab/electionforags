@@ -149,11 +149,15 @@ export default function MentorPortal() {
           <button className="px-3 py-1 bg-red-600 text-white rounded text-sm font-medium" onClick={async () => {
             toast.dismiss(t.id);
             try {
-              await invalidateCode(studentId, activeElection);
+              const res = await invalidateCode(studentId, activeElection);
+              if (res?.error) {
+                toast.error(res.error);
+                return;
+              }
               toast.success('Code invalidated. Click "Download ID Cards" to generate a new code and PDF.');
               loadRoster(activeElection, activeDivision);
             } catch (err: any) {
-              toast.error(err.message);
+              toast.error(err.message || 'Failed to invalidate code.');
             }
           }}>Invalidate</button>
           <button className="px-3 py-1 bg-slate-200 text-slate-800 rounded text-sm font-medium" onClick={() => toast.dismiss(t.id)}>Cancel</button>
@@ -164,7 +168,13 @@ export default function MentorPortal() {
 
   const executeWhatsappGeneration = async (student: any) => {
     try {
-      const plaintextCode = await generateSingleCodeForWhatsapp(student.id, activeElection);
+      const res = await generateSingleCodeForWhatsapp(student.id, activeElection);
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      
+      const plaintextCode = res.plaintextCode;
       
       let formattedPhone = student.phone.replace(/[^0-9]/g, '');
       if (formattedPhone.length === 10) formattedPhone = '91' + formattedPhone;
@@ -180,7 +190,7 @@ export default function MentorPortal() {
       // Refresh to show status changed to 'Issued'
       loadRoster(activeElection, activeDivision);
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(err.message || 'Failed to generate code.');
     }
   };
 
@@ -193,9 +203,13 @@ export default function MentorPortal() {
             <button className="px-3 py-1 bg-red-600 text-white rounded text-sm font-medium" onClick={async () => {
               toast.dismiss(t.id);
               try {
-                await invalidateCode(student.id, activeElection);
+                const res = await invalidateCode(student.id, activeElection);
+                if (res?.error) {
+                  toast.error(res.error);
+                  return;
+                }
                 await executeWhatsappGeneration(student);
-              } catch (e: any) { toast.error(e.message); }
+              } catch (e: any) { toast.error(e.message || 'Failed to invalidate code.'); }
             }}>Invalidate & Send</button>
             <button className="px-3 py-1 bg-slate-200 text-slate-800 rounded text-sm font-medium" onClick={() => toast.dismiss(t.id)}>Cancel</button>
           </div>
