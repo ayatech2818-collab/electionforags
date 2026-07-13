@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection, updateMentorResetAccess } from './actions';
-import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock } from 'lucide-react';
+import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ElectionController() {
@@ -14,6 +14,8 @@ export default function ElectionController() {
   const [unlockGrade, setUnlockGrade] = useState<string>('');
   const [selectedDivisions, setSelectedDivisions] = useState<string[]>([]);
   const [divisionStatuses, setDivisionStatuses] = useState<Record<string, boolean>>({});
+  const [downloadGrade, setDownloadGrade] = useState<string>('');
+  const [downloadDivision, setDownloadDivision] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -557,6 +559,54 @@ export default function ElectionController() {
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${activeElec.allow_mentor_reset ? 'bg-blue-600' : 'bg-slate-300'}`}
                   >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${activeElec.allow_mentor_reset ? 'translate-x-6' : 'translate-x-1'}`} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mt-6">
+                <div className="flex items-center gap-2 text-slate-800 font-bold text-lg mb-2">
+                  <Download className="w-5 h-5 text-blue-600" />
+                  Export Voter Credentials
+                </div>
+                <p className="text-sm text-slate-500 mb-4">
+                  Generate and download PDF sheets containing secret voter codes for a specific division. This automatically issues secure codes to any students who don't have them yet.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <select 
+                    className="border p-2 text-sm rounded flex-1 bg-white text-slate-900"
+                    value={downloadGrade}
+                    onChange={(e) => {
+                      setDownloadGrade(e.target.value);
+                      setDownloadDivision('');
+                    }}
+                  >
+                    <option value="" disabled>Select Grade</option>
+                    {Array.from(new Set(classes.map(d => d.title.split(' ')[1]).filter(Boolean))).sort().map(g => (
+                      <option key={g} value={g as string}>Grade {g as string}</option>
+                    ))}
+                  </select>
+                  
+                  {downloadGrade && (
+                    <select 
+                      className="border p-2 text-sm rounded flex-1 bg-white text-slate-900"
+                      value={downloadDivision}
+                      onChange={(e) => setDownloadDivision(e.target.value)}
+                    >
+                      <option value="" disabled>Select Division</option>
+                      {classes.filter(d => d.title.split(' ')[1] === downloadGrade).map(d => (
+                        <option key={d.id} value={d.id}>Div {d.title.split(' ')[2] || ''}</option>
+                      ))}
+                    </select>
+                  )}
+
+                  <button 
+                    disabled={!downloadDivision}
+                    onClick={() => {
+                      window.open(`/api/election/generate-ids?electionId=${activeElec.id}&divisionId=${downloadDivision}&mentorId=system`, '_blank');
+                    }}
+                    className="bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-purple-700 transition-colors whitespace-nowrap flex items-center justify-center gap-2"
+                  >
+                    <Download className="w-4 h-4" /> Download PDF
                   </button>
                 </div>
               </div>
