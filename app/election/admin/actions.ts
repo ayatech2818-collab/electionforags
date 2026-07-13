@@ -54,7 +54,7 @@ export async function updateMentorResetAccess(id: string, allowReset: boolean) {
 export async function getPositions(electionId: string) {
   const { data, error } = await supabaseAdmin
     .from('election_positions')
-    .select('*, election_candidates(*, students(full_name))')
+    .select('*, election_candidates(*, students(id, full_name, classes(title)))')
     .eq('election_id', electionId)
     .order('display_order', { ascending: true });
   if (error) throw new Error(error.message);
@@ -244,4 +244,13 @@ export async function getAllDivisionStatusesForElection(electionId: string) {
     statusMap[row.division_id] = row.is_unlocked;
   });
   return statusMap;
+}
+
+export async function updateStudentName(studentId: string, newName: string) {
+  const { error } = await supabaseAdmin
+    .from('students')
+    .update({ full_name: newName })
+    .eq('id', studentId);
+  if (error) throw new Error(error.message);
+  return true;
 }

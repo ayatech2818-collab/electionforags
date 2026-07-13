@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection, updateMentorResetAccess } from './actions';
+import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection, updateMentorResetAccess, updateStudentName } from './actions';
 import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,7 @@ export default function ElectionController() {
   const [divisionStatuses, setDivisionStatuses] = useState<Record<string, boolean>>({});
   const [downloadGrade, setDownloadGrade] = useState<string>('');
   const [downloadDivision, setDownloadDivision] = useState<string>('');
+  const [editingCandidate, setEditingCandidate] = useState<{id: string, name: string} | null>(null);
 
   useEffect(() => {
     loadData();
@@ -368,7 +369,72 @@ export default function ElectionController() {
                                   ) : (
                                     <span className="text-2xl shrink-0">{['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][index % 16]}</span>
                                   )}
-                                  <span className="leading-tight">{c.students?.full_name}</span>
+                                  <div className="flex flex-col">
+                                    {editingCandidate?.id === c.students?.id ? (
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <input
+                                          type="text"
+                                          value={editingCandidate.name}
+                                          onChange={(e) => setEditingCandidate({ ...editingCandidate, name: e.target.value })}
+                                          className="border border-blue-400 p-1.5 rounded text-sm w-48 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                          autoFocus
+                                          onKeyDown={async (e) => {
+                                            if (e.key === 'Enter') {
+                                              if (editingCandidate.name.trim() && editingCandidate.name.trim() !== c.students?.full_name) {
+                                                try {
+                                                  await updateStudentName(c.students?.id, editingCandidate.name.trim());
+                                                  toast.success("Name updated successfully!");
+                                                  loadDetails(activeElec.id);
+                                                } catch (err: any) {
+                                                  toast.error(err.message);
+                                                }
+                                              }
+                                              setEditingCandidate(null);
+                                            } else if (e.key === 'Escape') {
+                                              setEditingCandidate(null);
+                                            }
+                                          }}
+                                        />
+                                        <button 
+                                          onClick={async () => {
+                                            if (editingCandidate.name.trim() && editingCandidate.name.trim() !== c.students?.full_name) {
+                                              try {
+                                                await updateStudentName(c.students?.id, editingCandidate.name.trim());
+                                                toast.success("Name updated successfully!");
+                                                loadDetails(activeElec.id);
+                                              } catch (err: any) {
+                                                toast.error(err.message);
+                                              }
+                                            }
+                                            setEditingCandidate(null);
+                                          }} 
+                                          className="text-green-700 bg-green-100 hover:bg-green-200 p-1.5 rounded"
+                                          title="Save"
+                                        >
+                                          <Save className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                          onClick={() => setEditingCandidate(null)} 
+                                          className="text-slate-500 bg-slate-200 hover:bg-slate-300 p-1.5 rounded"
+                                          title="Cancel"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span className="leading-tight group flex items-center gap-2">
+                                        <span className="font-bold text-slate-800">{c.students?.full_name}</span>
+                                        <span className="text-[10px] text-slate-500 font-bold bg-slate-200 px-2 py-0.5 rounded uppercase tracking-wider">{c.students?.classes?.title || 'Unknown Class'}</span>
+                                        <button
+                                          onClick={() => setEditingCandidate({ id: c.students?.id, name: c.students?.full_name })}
+                                          className="text-slate-400 hover:text-blue-600 transition-colors"
+                                          title="Edit Name"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                        </button>
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="relative shrink-0 flex items-center gap-2 self-start sm:self-auto ml-11 sm:ml-0">
                                   <div className="relative">
