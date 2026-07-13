@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { getActiveElections, getMentorDivisions, getDivisionRoster, invalidateCode, generateSingleCodeForWhatsapp } from './actions';
 import { Download, Users, AlertTriangle, RefreshCw, CheckCircle, MessageCircle, ShieldCheck, Fingerprint, User } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-anon-key'
+);
 
 export default function MentorPortal() {
   const [elections, setElections] = useState<any[]>([]);
@@ -62,6 +68,18 @@ export default function MentorPortal() {
       }
     }
   }, [activeGrade, divisions]);
+
+  useEffect(() => {
+    const channel = supabase.channel('elections-changes')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'elections' }, (payload) => {
+        setElections(prev => prev.map(e => e.id === payload.new.id ? { ...e, allow_mentor_reset: payload.new.allow_mentor_reset } : e));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     if (activeElection && activeDivision) {
