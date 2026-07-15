@@ -208,7 +208,7 @@ export async function getTurnoutStats(electionId: string) {
 
   if (sessionsError) throw new Error(sessionsError.message);
 
-  const classStats: Record<string, { className: string, total: number, voted: number, voting: number }> = {};
+  const classStats: Record<string, { classId: string, className: string, total: number, voted: number, voting: number }> = {};
 
   // Count total eligible per class based on generated codes
   codes.forEach((code: any) => {
