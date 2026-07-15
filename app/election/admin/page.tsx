@@ -716,9 +716,36 @@ export default function ElectionController() {
                     <button 
                       disabled={!downloadDivision}
                       onClick={() => {
-                        if (window.confirm('Are you sure you want to invalidate all existing codes for this division and generate new ones? This cannot be undone.')) {
-                          window.open(`/api/election/generate-ids?electionId=${activeElec.id}&divisionId=${downloadDivision}&mentorId=system&forceReset=true`, '_blank');
-                        }
+                        toast((t) => (
+                          <div className="flex flex-col gap-4 w-[320px]">
+                            <div className="flex items-start gap-4">
+                              <div className="bg-red-50 p-2.5 rounded-full shrink-0">
+                                <RefreshCw className="w-5 h-5 text-red-600" />
+                              </div>
+                              <div className="flex-1 pr-2">
+                                <p className="font-bold text-slate-900 text-base">Reset Codes</p>
+                                <p className="text-sm text-slate-500 mt-1 leading-relaxed">Are you sure you want to invalidate all existing codes for this division and generate new ones? This cannot be undone.</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 justify-end mt-2 pt-2 border-t border-slate-100">
+                              <button 
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-sm font-medium transition-colors" 
+                                onClick={() => toast.dismiss(t.id)}
+                              >
+                                Cancel
+                              </button>
+                              <button 
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors" 
+                                onClick={() => {
+                                  toast.dismiss(t.id);
+                                  window.open(`/api/election/generate-ids?electionId=${activeElec.id}&divisionId=${downloadDivision}&mentorId=system&forceReset=true`, '_blank');
+                                }}
+                              >
+                                Yes, Reset
+                              </button>
+                            </div>
+                          </div>
+                        ), { duration: Infinity });
                       }}
                       className="w-full bg-red-50 text-red-700 border border-red-200 px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-red-100 transition-colors flex items-center justify-center gap-2 mt-1"
                     >

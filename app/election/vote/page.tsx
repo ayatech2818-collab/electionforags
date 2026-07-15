@@ -73,7 +73,7 @@ export default function StudentVotingBooth() {
 
   if (isDone) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#192A58] flex items-center justify-center p-4">
         <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl max-w-md w-full text-center space-y-6">
           <div className="mx-auto w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-emerald-400" />
@@ -89,10 +89,10 @@ export default function StudentVotingBooth() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 font-sans">
-        <div className="mb-8 text-center">
+      <div className="min-h-screen bg-[#192A58] flex flex-col items-center justify-center p-4 font-sans">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <img src="/ags_logo.jpeg" alt="AGS Logo" className="h-14 w-auto object-contain mb-6 rounded" />
           <h1 className="text-4xl font-black text-white flex items-center justify-center gap-3 mb-2">
-            <Vote className="text-blue-500 w-10 h-10" />
             AGS Voting Booth
           </h1>
           <p className="text-slate-400 font-medium tracking-wide uppercase text-sm">Secure • Anonymous • Verified</p>
@@ -137,9 +137,12 @@ export default function StudentVotingBooth() {
     <div className="min-h-screen bg-slate-50 py-10 px-4 font-sans">
       <div className="max-w-3xl mx-auto space-y-8">
         
-        <header className="text-center space-y-2">
-          <h1 className="text-3xl font-black text-slate-900">Official Ballot</h1>
-          <p className="text-slate-500">Please select exactly one candidate for each position.</p>
+        <header className="text-center space-y-4 flex flex-col items-center">
+          <img src="/ags_logo.jpeg" alt="AGS Logo" className="h-12 w-auto object-contain rounded" />
+          <div>
+            <h1 className="text-3xl font-black text-slate-900">Official Ballot</h1>
+            <p className="text-slate-500 mt-2">Please select exactly one candidate for each position.</p>
+          </div>
         </header>
 
         {error && (

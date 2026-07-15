@@ -131,42 +131,111 @@ export async function assignOfficer(electionId: string, mentorId: string, divisi
   return true;
 }
 
-export async function getLiveTallies(electionId: string, positionIds: string[]) {
-  // We call the security definer function for each position.
+export async function getLiveTallies(electionId: string, positionIds: string[], divisionIds?: string[]) {
   const tallies: Record<string, any[]> = {};
-  for (const posId of positionIds) {
-    const { data, error } = await supabaseAdmin.rpc('election_tally', { p_position_id: posId });
-    if (!error && data) {
-      tallies[posId] = data;
+  positionIds.forEach(p => tallies[p] = []);
+
+  if (divisionIds && divisionIds.length > 0 && divisionIds[0] !== 'all') {
+    // Filtered by division(s): manually aggregate
+    const { data: votes, error } = await supabaseAdmin
+      .from('election_votes')
+      .select('candidate_id, position_id, election_voting_sessions!inner(division_id)')
+      .in('position_id', positionIds)
+      .in('election_voting_sessions.division_id', divisionIds);
+
+    if (error) {
+      console.error('Error fetching filtered votes:', error);
+      return tallies;
+    }
+
+    if (votes) {
+      const voteCounts = new Map<string, number>();
+      votes.forEach((v: any) => {
+        const count = voteCounts.get(v.candidate_id) || 0;
+        voteCounts.set(v.candidate_id, count + 1);
+      });
+      
+      voteCounts.forEach((count, candidate_id) => {
+        const pos_id = votes.find((v: any) => v.candidate_id === candidate_id)?.position_id;
+        if (pos_id) {
+          tallies[pos_id].push({ candidate_id, vote_count: count });
+        }
+      });
+    }
+  } else {
+    // Unfiltered: use RPC
+    for (const posId of positionIds) {
+      const { data, error } = await supabaseAdmin.rpc('election_tally', { p_position_id: posId });
+      if (!error && data) {
+        tallies[posId] = data;
+      }
     }
   }
+
   return tallies;
 }
 
 export async function getTurnoutStats(electionId: string) {
-  // Same logic as officer view, but for all divisions
-  const { data, error } = await supabaseAdmin
-    .from('election_voting_sessions')
-    .select('status, division_id, classes(title)')
+  // 1. Get all students and their class info
+  const { data: students, error: studentsError } = await supabaseAdmin
+    .from('students')
+    .select('id, class_id, classes(title)');
+    
+  if (studentsError) throw new Error(studentsError.message);
+  
+  const studentMap = new Map();
+  students.forEach((s: any) => {
+    const c = Array.isArray(s.classes) ? s.classes[0] : s.classes;
+    studentMap.set(s.id, {
+      classId: s.class_id,
+      classTitle: c?.title || 'Unknown Class'
+    });
+  });
+
+  // 2. Get all secret codes for this election (eligible voters)
+  const { data: codes, error: codesError } = await supabaseAdmin
+    .from('election_secret_codes')
+    .select('student_id')
     .eq('election_id', electionId);
 
-  if (error) throw new Error(error.message);
+  if (codesError) throw new Error(codesError.message);
+
+  // 3. Get all voting sessions for this election
+  const { data: sessions, error: sessionsError } = await supabaseAdmin
+    .from('election_voting_sessions')
+    .select('status, division_id')
+    .eq('election_id', electionId);
+
+  if (sessionsError) throw new Error(sessionsError.message);
 
   const classStats: Record<string, { className: string, total: number, voted: number, voting: number }> = {};
-  
-  data.forEach((session: any) => {
-    const classId = session.division_id;
-    const classTitle = session.classes?.title || 'Unknown Class';
 
-    if (!classStats[classId]) {
-      classStats[classId] = { className: classTitle, total: 0, voted: 0, voting: 0 };
+  // Count total eligible per class based on generated codes
+  codes.forEach((code: any) => {
+    const sInfo = studentMap.get(code.student_id);
+    if (sInfo) {
+      if (!classStats[sInfo.classId]) {
+        classStats[sInfo.classId] = { classId: sInfo.classId, className: sInfo.classTitle, total: 0, voted: 0, voting: 0 };
+      }
+      classStats[sInfo.classId].total++;
     }
-    classStats[classId].total++;
-    if (session.status === 'done') classStats[classId].voted++;
-    if (session.status === 'doing') classStats[classId].voting++;
   });
-  
-  return Object.values(classStats);
+
+  // Count voted/voting per class based on sessions
+  sessions.forEach((session: any) => {
+    const classId = session.division_id;
+    if (classStats[classId]) {
+      if (session.status === 'done') classStats[classId].voted++;
+      if (session.status === 'doing') classStats[classId].voting++;
+    } else {
+      // Edge case: session exists but no total somehow (e.g. deleted code)
+      classStats[classId] = { classId, className: 'Unknown Class', total: 0, voted: 0, voting: 0 };
+      if (session.status === 'done') classStats[classId].voted++;
+      if (session.status === 'doing') classStats[classId].voting++;
+    }
+  });
+
+  return Object.values(classStats).sort((a, b) => a.className.localeCompare(b.className));
 }
 
 export async function updateCandidateSymbol(candidateId: string, base64Url: string) {

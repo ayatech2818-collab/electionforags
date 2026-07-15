@@ -18,6 +18,8 @@ export default function LiveResultsDashboard() {
   const [positions, setPositions] = useState<any[]>([]);
   const [tallies, setTallies] = useState<Record<string, any[]>>({});
   const [turnout, setTurnout] = useState<any[]>([]);
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
+  const [selectedDivision, setSelectedDivision] = useState<string>('all');
   
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -31,6 +33,46 @@ export default function LiveResultsDashboard() {
     }
     init();
   }, []);
+
+  const getGradeStr = (name: string) => {
+    const parts = name.split(' ');
+    if (parts.length >= 2) return `${parts[0]} ${parts[1]}`;
+    return name;
+  };
+
+  const loadDashboardData = async (silent = false, divId = selectedDivision, gradeStr = selectedGrade) => {
+    if (!silent) setIsUpdating(true);
+    try {
+      const posData = await getPositions(activeElec.id);
+      setPositions(posData);
+      
+      const newTurnout = await getTurnoutStats(activeElec.id);
+      
+      let filterDivIds: string[] = [];
+      if (divId !== 'all') {
+        filterDivIds = [divId];
+      } else if (gradeStr !== 'all') {
+        filterDivIds = newTurnout.filter((t: any) => getGradeStr(t.className) === gradeStr).map((t: any) => t.classId);
+      } else {
+        filterDivIds = ['all'];
+      }
+      
+      const newTallies = await getLiveTallies(activeElec.id, posData.map((p: any) => p.id), filterDivIds);
+      
+      setTallies(newTallies);
+      setTurnout(newTurnout);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeElec) {
+      loadDashboardData(true, selectedDivision, selectedGrade);
+    }
+  }, [selectedDivision, selectedGrade]);
 
   useEffect(() => {
     if (activeElec) {
@@ -62,33 +104,13 @@ export default function LiveResultsDashboard() {
     }
   }, [activeElec]);
 
-  const loadDashboardData = async (silent = false) => {
-    if (!silent) setIsUpdating(true);
-    try {
-      const posData = await getPositions(activeElec.id);
-      setPositions(posData);
-      
-      const [newTallies, newTurnout] = await Promise.all([
-        getLiveTallies(activeElec.id, posData.map((p: any) => p.id)),
-        getTurnoutStats(activeElec.id)
-      ]);
-      
-      setTallies(newTallies);
-      setTurnout(newTurnout);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   if (isLoading) return <div className="p-10 text-center animate-pulse">Loading Live Dashboard...</div>;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-6 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        <header className="flex justify-between items-center bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl gap-4">
           <div>
             <h1 className="text-3xl font-black text-white flex items-center gap-3">
               <Activity className="text-emerald-400" />
@@ -97,15 +119,9 @@ export default function LiveResultsDashboard() {
             <p className="text-slate-400 mt-1">Real-time vote tallies and turnout statistics.</p>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
             {isUpdating && <span className="text-xs text-emerald-400 animate-pulse font-bold">● LIVE UPDATING</span>}
-            <select 
-              value={activeElec?.id || ''} 
-              onChange={e => setActiveElec(elections.find(el => el.id === e.target.value))}
-              className="p-2 border rounded-md bg-slate-700 border-slate-600 text-white"
-            >
-              {elections.map(e => <option key={e.id} value={e.id}>{e.name} ({e.status})</option>)}
-            </select>
+            <img src="/ags_logo.jpeg" alt="AGS Logo" className="h-14 w-auto object-contain bg-white/5 rounded-md p-1" />
           </div>
         </header>
 
@@ -119,13 +135,28 @@ export default function LiveResultsDashboard() {
                 const posTallies = tallies[pos.id] || [];
                 const totalVotes = posTallies.reduce((sum: number, t: any) => sum + Number(t.vote_count), 0);
                 
+                // Sort election_candidates alphabetically first to assign fallbackIndex
+                const sortedCands = [...pos.election_candidates].sort((a: any, b: any) => a.id.localeCompare(b.id));
+                const fallbackIndexMap = new Map();
+                sortedCands.forEach((c: any, index: number) => fallbackIndexMap.set(c.id, index));
+
                 // Map candidates with their tallies
                 const candidates = pos.election_candidates.map((c: any) => {
                   const tallyObj = posTallies.find((t: any) => t.candidate_id === c.id);
                   const votes = tallyObj ? Number(tallyObj.vote_count) : 0;
+                  
+                  let grade = '';
+                  if (c.students?.classes) {
+                    const cl = Array.isArray(c.students.classes) ? c.students.classes[0] : c.students.classes;
+                    grade = cl?.title || '';
+                  }
+
                   return {
                     id: c.id,
-                    name: c.students.full_name,
+                    name: c.students?.full_name || 'Unknown',
+                    symbol_url: c.symbol_url,
+                    grade,
+                    fallbackIndex: fallbackIndexMap.get(c.id),
                     votes
                   };
                 });
@@ -177,12 +208,26 @@ export default function LiveResultsDashboard() {
                         <div key={c.id} className={`flex flex-col sm:flex-row items-center justify-between p-4 rounded-xl border ${c.rank === 1 && c.votes > 0 ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-slate-800/50 border-slate-700'}`}>
                           
                           <div className="flex items-center gap-4 w-full sm:w-auto">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${c.rank === 1 && c.votes > 0 ? 'bg-yellow-500 text-yellow-950' : 'bg-slate-700 text-slate-300'}`}>
+                            <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-bold text-lg ${c.rank === 1 && c.votes > 0 ? 'bg-yellow-500 text-yellow-950' : 'bg-slate-700 text-slate-300'}`}>
                               #{c.rank}
                             </div>
+                            
+                            <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-3xl shadow-inner">
+                              {c.symbol_url ? (
+                                <img src={c.symbol_url} alt="symbol" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{['🍎', '⚽', '🌟', '🎸', '🚗', '🎈', '🍕', '🚀', '🎨', '🐶', '📚', '🌻', '🦁', '🚁', '🍔', '🐼'][c.fallbackIndex % 16]}</span>
+                              )}
+                            </div>
+
                             <div>
                               <h4 className="text-lg font-bold text-white">{c.name}</h4>
-                              <div className="flex items-center gap-3 mt-1 text-xs">
+                              <div className="flex items-center gap-2 mt-1 text-xs">
+                                {c.grade && (
+                                  <span className="bg-slate-700 text-slate-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                                    {c.grade.split(' ').slice(0, 2).join(' ')}
+                                  </span>
+                                )}
                                 {c.isTie && <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded border border-orange-500/30">Tied</span>}
                                 {index > 0 && c.lag > 0 && (
                                   <span className="text-red-400 flex items-center">
@@ -207,12 +252,60 @@ export default function LiveResultsDashboard() {
             </div>
 
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold border-b border-slate-700 pb-2"><Users className="inline mb-1 mr-2 text-blue-400"/> Division Turnout</h2>
+              <div className="flex flex-col border-b border-slate-700 pb-4 gap-3">
+                <h2 className="text-2xl font-bold"><Users className="inline mb-1 mr-2 text-blue-400"/> Division Turnout</h2>
+                
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-slate-700/50 p-1.5 rounded-lg border border-slate-600">
+                    <span className="text-xs font-medium text-slate-300">Grade:</span>
+                    <select 
+                      value={selectedGrade} 
+                      onChange={e => {
+                        setSelectedGrade(e.target.value);
+                        setSelectedDivision('all');
+                      }}
+                      className="bg-slate-800 text-white text-xs rounded border-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 py-1 px-2 custom-scrollbar"
+                    >
+                      <option value="all">All Grades</option>
+                      {Array.from(new Set(turnout.map((t: any) => getGradeStr(t.className)))).sort().map(grade => (
+                        <option key={grade} value={grade}>{grade}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className={`flex items-center gap-2 bg-slate-700/50 p-1.5 rounded-lg border border-slate-600 transition-opacity ${selectedGrade === 'all' ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <span className="text-xs font-medium text-slate-300">Div:</span>
+                    <select 
+                      value={selectedDivision} 
+                      onChange={e => setSelectedDivision(e.target.value)}
+                      className="bg-slate-800 text-white text-xs rounded border-slate-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 py-1 px-2 custom-scrollbar"
+                    >
+                      <option value="all">All</option>
+                      {selectedGrade !== 'all' && turnout
+                        .filter((t: any) => getGradeStr(t.className) === selectedGrade)
+                        .sort((a: any, b: any) => a.className.localeCompare(b.className))
+                        .map((t: any) => {
+                          const divStr = t.className.split(' ').slice(2).join(' ') || t.className;
+                          return (
+                            <option key={t.classId || t.className} value={t.classId}>{divStr}</option>
+                          );
+                        })}
+                    </select>
+                  </div>
+                </div>
+              </div>
               
-              <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 space-y-6 shadow-lg">
+              <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 space-y-6 shadow-lg max-h-[800px] overflow-y-auto custom-scrollbar">
                 {turnout.length === 0 ? (
                   <p className="text-slate-500 text-center">No voting sessions found.</p>
-                ) : turnout.sort((a,b) => (b.voted/b.total) - (a.voted/a.total)).map((t: any) => {
+                ) : turnout
+                  .filter((t: any) => {
+                    if (selectedDivision !== 'all') return t.classId === selectedDivision;
+                    if (selectedGrade !== 'all') return getGradeStr(t.className) === selectedGrade;
+                    return true;
+                  })
+                  .sort((a: any, b: any) => (b.voted/b.total) - (a.voted/a.total))
+                  .map((t: any) => {
                   const percent = t.total > 0 ? (t.voted / t.total) * 100 : 0;
                   return (
                     <div key={t.className} className="space-y-2">
