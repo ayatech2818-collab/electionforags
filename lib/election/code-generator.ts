@@ -20,9 +20,11 @@ export async function generateRandomCode(): Promise<string> {
 
 /**
  * Hashes a plaintext code with a given salt using SHA-256.
+ * We embed the plaintext code in the salt field (with a prefix) so that it can be retrieved 
+ * by the Admin and Mother Mentors without changing the DB schema.
  */
 export async function hashSecretCode(code: string): Promise<{ hash: string, salt: string }> {
-  const salt = crypto.randomBytes(16).toString('hex');
+  const salt = 'PLAIN:' + code;
   const hash = crypto.createHash('sha256').update(code + salt).digest('hex');
   return { hash, salt };
 }
@@ -46,7 +48,7 @@ export async function generateCodesForDivision(electionId: string, divisionId: s
   // 2. Fetch existing codes for these students in this election
   const { data: existingCodes, error: codesError } = await supabaseAdmin
     .from('election_secret_codes')
-    .select('student_id')
+    .select('student_id, salt')
     .eq('election_id', electionId)
     .in('student_id', students.map(s => s.id));
 
@@ -56,7 +58,25 @@ export async function generateCodesForDivision(electionId: string, divisionId: s
 
   const studentsWithCodes = new Set(existingCodes.map(c => c.student_id));
   const studentsNeedingCodes = students.filter(s => !studentsWithCodes.has(s.id));
+  
   const generatedCodes = [];
+  
+  // Reconstruct existing plaintext codes if available
+  for (const c of existingCodes) {
+    if (c.salt && c.salt.startsWith('PLAIN:')) {
+      const plaintextCode = c.salt.substring(6);
+      const student = students.find(s => s.id === c.student_id);
+      if (student) {
+        generatedCodes.push({
+          studentId: student.id,
+          studentName: student.full_name,
+          rollNo: student.roll_no,
+          secretCode: plaintextCode
+        });
+      }
+    }
+  }
+
   const auditLogs = [];
   const dbInserts = [];
 

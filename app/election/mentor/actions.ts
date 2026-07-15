@@ -56,20 +56,27 @@ export async function getDivisionRoster(divisionId: string, electionId: string) 
   // Check if they have codes generated for this election
   const { data: codes, error: codesError } = await supabaseAdmin
     .from('election_secret_codes')
-    .select('student_id, status')
+    .select('student_id, status, salt')
     .eq('election_id', electionId);
 
   if (codesError) throw new Error(codesError.message);
 
-  const codesMap = new Map(codes.map(c => [c.student_id, { status: c.status, code: null }]));
+  const codesMap = new Map(codes.map(c => [
+    c.student_id, 
+    { 
+      status: c.status, 
+      isPlaintext: c.salt && c.salt.startsWith('PLAIN:') 
+    }
+  ]));
 
   return students.map(s => {
     const codeData = codesMap.get(s.id);
     return {
       ...s,
       hasCode: !!codeData,
+      isPlaintext: codeData?.isPlaintext || false,
       status: codeData?.status || 'not_issued',
-      secretCode: codeData?.code || null
+      secretCode: null
     };
   });
 }
@@ -108,13 +115,17 @@ export async function generateSingleCodeForWhatsapp(studentId: string, electionI
     // Check if they already have an active code
     const { data: existing } = await supabaseAdmin
       .from('election_secret_codes')
-      .select('id')
+      .select('id, salt')
       .eq('student_id', studentId)
       .eq('election_id', electionId)
       .maybeSingle();
 
     if (existing) {
-      return { error: 'Code already exists. Please regenerate it first if you lost it.' };
+      if (existing.salt && existing.salt.startsWith('PLAIN:')) {
+        return { plaintextCode: existing.salt.substring(6) };
+      } else {
+        return { error: 'Code already exists but was generated with an older system. Please invalidate it and regenerate.' };
+      }
     }
 
     // Generate new code

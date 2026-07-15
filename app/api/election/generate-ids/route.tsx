@@ -39,17 +39,30 @@ export async function GET(req: NextRequest) {
 
     const className = division?.title || 'Unknown Class';
 
-    // 3. Generate codes for those who don't have them
+    const forceReset = searchParams.get('forceReset') === 'true';
+
+    if (forceReset) {
+      const { data: students } = await supabaseAdmin.from('students').select('id').eq('class_id', divisionId);
+      if (students && students.length > 0) {
+        const studentIds = students.map(s => s.id);
+        await supabaseAdmin.from('election_secret_codes')
+          .delete()
+          .eq('election_id', electionId)
+          .in('student_id', studentIds);
+      }
+    }
+
+    // 3. Generate codes for those who don't have them (and fetch existing readable ones)
     const genResult = await generateCodesForDivision(electionId, divisionId, mentorId);
 
-    if (genResult.newlyGenerated === 0) {
+    if (genResult.codes.length === 0) {
       return NextResponse.json({ 
-        error: 'No new codes generated. All students already have codes issued.',
-        details: 'For security, plaintext codes are never stored and cannot be re-downloaded. If a student lost their code, you must explicitly invalidate it and generate a new one.'
+        error: 'No codes available to download.',
+        details: 'There are no students in this division, or the existing codes are from an older version that cannot be retrieved.'
       }, { status: 400 });
     }
 
-    // 4. Render PDF with the newly generated codes
+    // 4. Render PDF with the codes
     const cardsToGenerate = genResult.codes.map(c => ({
       studentName: c.studentName,
       rollNo: c.rollNo,

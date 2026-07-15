@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getElections, createElection, updateElectionStatus, getPositions, createPosition, searchStudents, addCandidate, getClasses, updateCandidateSymbol, getStudentsByDivision, removeCandidate, updateCandidatePhoto, removePosition, setDivisionVotingStatus, getDivisionVotingStatus, getAllDivisionStatusesForElection, updateMentorResetAccess, updateStudentName, updateMentorGenerateAllAccess } from './actions';
-import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock, Download } from 'lucide-react';
+import { Plus, Trash2, Shield, Calendar, MapPin, Users, User, Settings, PlayCircle, BarChart3, ChevronRight, Activity, Save, LayoutList, CheckCircle, Target, ShieldCheck, Unlock, Download, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ElectionController() {
@@ -703,15 +703,28 @@ export default function ElectionController() {
                     </div>
                   )}
 
-                  <button 
-                    disabled={!downloadDivision}
-                    onClick={() => {
-                      window.open(`/api/election/generate-ids?electionId=${activeElec.id}&divisionId=${downloadDivision}&mentorId=system`, '_blank');
-                    }}
-                    className="w-full bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Download className="w-4 h-4" /> Download PDF
-                  </button>
+                  <div className="flex flex-col gap-2 w-full">
+                    <button 
+                      disabled={!downloadDivision}
+                      onClick={() => {
+                        window.open(`/api/election/generate-ids?electionId=${activeElec.id}&divisionId=${downloadDivision}&mentorId=system`, '_blank');
+                      }}
+                      className="w-full bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-4 h-4" /> Issue Missing Codes
+                    </button>
+                    <button 
+                      disabled={!downloadDivision}
+                      onClick={() => {
+                        if (window.confirm('Are you sure you want to invalidate all existing codes for this division and generate new ones? This cannot be undone.')) {
+                          window.open(`/api/election/generate-ids?electionId=${activeElec.id}&divisionId=${downloadDivision}&mentorId=system&forceReset=true`, '_blank');
+                        }
+                      }}
+                      className="w-full bg-red-50 text-red-700 border border-red-200 px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-red-100 transition-colors flex items-center justify-center gap-2 mt-1"
+                    >
+                      <RefreshCw className="w-4 h-4" /> Reset & Regenerate All
+                    </button>
+                  </div>
                 </div>
               </div>
 

@@ -195,7 +195,7 @@ export default function MentorPortal() {
   };
 
   const handleSendWhatsapp = async (student: any) => {
-    if (student.hasCode) {
+    if (student.hasCode && !student.isPlaintext) {
       toast((t) => (
         <div className="flex flex-col gap-3">
           <p className="font-medium text-sm">WARNING: {student.full_name} already has a code. You cannot send an existing code for security reasons. You must REGENERATE their code to send it via WhatsApp. Do you want to invalidate their old code and send a new one now?</p>
@@ -310,14 +310,14 @@ export default function MentorPortal() {
                 <tbody className="divide-y divide-slate-100">
                   {roster.map(student => {
                     const currentElec = elections.find(e => e.id === activeElection);
-                    const effectiveHasCode = currentElec?.allow_mentor_generate_all ? false : student.hasCode;
+                    const effectiveHasCode = currentElec?.allow_mentor_generate_all ? false : (student.hasCode && !student.isPlaintext);
                     
                     return (
                     <tr key={student.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-900">{student.full_name}</td>
                       <td className="px-6 py-4 text-slate-500">{student.roll_no}</td>
                       <td className="px-6 py-4">
-                        {effectiveHasCode ? (
+                        {student.hasCode ? (
                           <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <CheckCircle className="w-3.5 h-3.5" /> Issued
                           </span>
@@ -336,7 +336,9 @@ export default function MentorPortal() {
                                 className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 sm:px-3 py-1.5 rounded-lg transition-colors text-xs font-medium border border-transparent hover:border-emerald-200"
                               >
                                 <MessageCircle className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> 
-                                <span className="hidden sm:inline">Generate & Send</span>
+                                <span className="hidden sm:inline">
+                                  {student.hasCode ? 'Re-send WhatsApp' : 'Generate & Send'}
+                                </span>
                                 <span className="sm:hidden">Send</span>
                               </button>
                             ) : (
