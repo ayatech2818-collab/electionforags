@@ -18,6 +18,9 @@ export default function MentorPortal() {
   const [activeElection, setActiveElection] = useState<string>('');
   const [activeGrade, setActiveGrade] = useState<string>('');
   const [activeDivision, setActiveDivision] = useState<string>('');
+  
+  const [sessionIssuedIds, setSessionIssuedIds] = useState<Set<string>>(new Set());
+  
   const [roster, setRoster] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -187,6 +190,8 @@ export default function MentorPortal() {
       // Open WhatsApp directly
       window.open(url, '_blank');
       
+      setSessionIssuedIds(prev => new Set(prev).add(student.id));
+      
       // Refresh to show status changed to 'Issued'
       loadRoster(activeElection, activeDivision);
     } catch (err: any) {
@@ -304,7 +309,9 @@ export default function MentorPortal() {
                 <tbody className="divide-y divide-slate-100">
                   {roster.map(student => {
                     const currentElec = elections.find(e => e.id === activeElection);
-                    const effectiveHasCode = currentElec?.allow_mentor_generate_all ? false : (student.hasCode && !student.isPlaintext);
+                    const effectiveHasCode = sessionIssuedIds.has(student.id) 
+                      ? true 
+                      : (currentElec?.allow_mentor_generate_all ? false : (student.hasCode && !student.isPlaintext));
                     
                     return (
                     <tr key={student.id} className="hover:bg-slate-50 transition-colors">
