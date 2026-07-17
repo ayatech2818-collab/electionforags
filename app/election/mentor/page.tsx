@@ -311,7 +311,7 @@ export default function MentorPortal() {
                       <td className="px-6 py-4 font-medium text-slate-900">{student.full_name}</td>
                       <td className="px-6 py-4 text-slate-500">{student.roll_no}</td>
                       <td className="px-6 py-4">
-                        {student.hasCode ? (
+                        {effectiveHasCode ? (
                           <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <CheckCircle className="w-3.5 h-3.5" /> Issued
                           </span>
