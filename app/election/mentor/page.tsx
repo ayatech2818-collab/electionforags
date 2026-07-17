@@ -331,7 +331,7 @@ export default function MentorPortal() {
                               >
                                 <MessageCircle className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> 
                                 <span className="hidden sm:inline">
-                                  {student.hasCode ? 'Re-send WhatsApp' : 'Generate & Send'}
+                                  {student.hasCode ? 'Send' : 'Generate & Send'}
                                 </span>
                                 <span className="sm:hidden">Send</span>
                               </button>

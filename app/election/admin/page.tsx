@@ -617,29 +617,9 @@ export default function ElectionController() {
                   Mentor Access Control
                 </div>
                 <p className="text-sm text-slate-500 mb-4">
-                  Allow Mother Mentors to reset student voter IDs. When disabled, the Reset button is hidden.
+                  Manage Mother Mentor permissions and portal access.
                 </p>
                 <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50">
-                  <span className="font-medium text-slate-700 text-sm">Enable Reset Button</span>
-                  <button
-                    onClick={async () => {
-                      const newStatus = !activeElec.allow_mentor_reset;
-                      try {
-                        await updateMentorResetAccess(activeElec.id, newStatus);
-                        setActiveElec({ ...activeElec, allow_mentor_reset: newStatus });
-                        setElections(elections.map(e => e.id === activeElec.id ? { ...e, allow_mentor_reset: newStatus } : e));
-                        toast.success(`Mentor reset access ${newStatus ? 'enabled' : 'disabled'}`);
-                      } catch (e: any) {
-                        toast.error(e.message);
-                      }
-                    }}
-                    className={`shrink-0 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${activeElec.allow_mentor_reset ? 'bg-blue-600' : 'bg-slate-300'}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${activeElec.allow_mentor_reset ? 'translate-x-6' : 'translate-x-1'}`} />
-                  </button>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50 mt-3">
                   <span className="font-medium text-slate-700 text-sm">Enable "Generate & Send" for ALL (even if issued)</span>
                   <button
                     onClick={async () => {
