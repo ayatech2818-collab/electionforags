@@ -181,7 +181,7 @@ export default function MentorPortal() {
       else if (formattedPhone.length < 10) formattedPhone = '91' + formattedPhone;
       else if (formattedPhone.length === 11 && formattedPhone.startsWith('0')) formattedPhone = '91' + formattedPhone.substring(1);
       
-      const message = `Hi ${student.full_name},\n\nYour secret voter code for the AGS Elections is:\n*${plaintextCode}*\n\nYou can cast your vote here:\nhttps://agselection.vercel.app/election/vote\n\nKeep this code strictly confidential. Do not share it with anyone.`;
+      const message = `Hi ${student.full_name},\n\nYour secret voter code for the AGS Elections is:\n*${plaintextCode}*\n\nKeep this code strictly confidential. Do not share it with anyone.`;
       const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
       
       // Open WhatsApp directly
@@ -283,13 +283,7 @@ export default function MentorPortal() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <h2 className="text-lg font-semibold text-slate-800">Class Roster & Code Status</h2>
-              <button 
-                onClick={handleDownload}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm"
-              >
-                <Download className="w-4 h-4" />
-                Generate & Download IDs
-              </button>
+
             </div>
             
             <div className="bg-amber-50 p-4 border-b border-amber-100 flex gap-3 text-amber-800 text-sm">
