@@ -85,7 +85,7 @@ export default function LiveAnalyticsPage() {
   const activePosition = positions[activePositionIndex];
   
   // Calculate candidate data for the active position
-  let candidateData = [];
+  let candidateData: any[] = [];
   if (activePosition) {
     const posTallies = tallies[activePosition.id] || [];
     
@@ -111,7 +111,7 @@ export default function LiveAnalyticsPage() {
     });
     
     // Sort by original order or alphabetically
-    candidateData.sort((a, b) => a.name.localeCompare(b.name));
+    candidateData.sort((a: any, b: any) => a.name.localeCompare(b.name));
   }
 
   const maxVotes = Math.max(...candidateData.map(c => c.votes), 10); // Minimum 10 to prevent empty bars looking weird
