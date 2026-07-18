@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { getActiveElections, getMentorDivisions, getDivisionRoster, invalidateCode, generateSingleCodeForWhatsapp } from './actions';
-import { Download, Users, AlertTriangle, RefreshCw, CheckCircle, MessageCircle, ShieldCheck, Fingerprint, User } from 'lucide-react';
+import { Download, Users, AlertTriangle, RefreshCw, CheckCircle, MessageCircle, ShieldCheck, Fingerprint, User, LogOut } from 'lucide-react';
+import { logout } from '../../login/actions';
 import toast from 'react-hot-toast';
 import { createClient } from '@supabase/supabase-js';
 
@@ -272,6 +273,14 @@ export default function MentorPortal() {
                 <option key={d.id} value={d.id}>Div {d.title.split(' ')[2] || ''}</option>
               ))}
             </select>
+
+            <button
+              onClick={() => logout()}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors focus:ring-2 focus:ring-red-500 outline-none"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
           </div>
         </header>
 
