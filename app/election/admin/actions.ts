@@ -136,27 +136,40 @@ export async function getLiveTallies(electionId: string, positionIds: string[], 
   positionIds.forEach(p => tallies[p] = []);
 
   if (divisionIds && divisionIds.length > 0 && divisionIds[0] !== 'all') {
-    // Filtered by division(s): manually aggregate
-    const { data: votes, error } = await supabaseAdmin
-      .from('election_votes')
-      .select('candidate_id, position_id, election_voting_sessions!inner(division_id)')
-      .in('position_id', positionIds)
-      .in('election_voting_sessions.division_id', divisionIds);
+    // Filtered by division(s): manually aggregate with pagination
+    let allVotes: any[] = [];
+    let hasMore = true;
+    let page = 0;
 
-    if (error) {
-      console.error('Error fetching filtered votes:', error);
-      return tallies;
+    while (hasMore) {
+      const { data: votes, error } = await supabaseAdmin
+        .from('election_votes')
+        .select('candidate_id, position_id, election_voting_sessions!inner(division_id)')
+        .in('position_id', positionIds)
+        .in('election_voting_sessions.division_id', divisionIds)
+        .range(page * 1000, (page + 1) * 1000 - 1);
+
+      if (error) {
+        console.error('Error fetching filtered votes:', error);
+        break;
+      }
+
+      allVotes = allVotes.concat(votes || []);
+      if (!votes || votes.length < 1000) {
+        hasMore = false;
+      }
+      page++;
     }
 
-    if (votes) {
+    if (allVotes.length > 0) {
       const voteCounts = new Map<string, number>();
-      votes.forEach((v: any) => {
+      allVotes.forEach((v: any) => {
         const count = voteCounts.get(v.candidate_id) || 0;
         voteCounts.set(v.candidate_id, count + 1);
       });
       
       voteCounts.forEach((count, candidate_id) => {
-        const pos_id = votes.find((v: any) => v.candidate_id === candidate_id)?.position_id;
+        const pos_id = allVotes.find((v: any) => v.candidate_id === candidate_id)?.position_id;
         if (pos_id) {
           tallies[pos_id].push({ candidate_id, vote_count: count });
         }
@@ -176,59 +189,69 @@ export async function getLiveTallies(electionId: string, positionIds: string[], 
 }
 
 export async function getTurnoutStats(electionId: string) {
-  // 1. Get all students and their class info
-  const { data: students, error: studentsError } = await supabaseAdmin
-    .from('students')
-    .select('id, class_id, classes(title)');
-    
-  if (studentsError) throw new Error(studentsError.message);
+  // 1. Get all students and their class info (with pagination to bypass 1000 row limit)
+  let allStudents: any[] = [];
+  let hasMore = true;
+  let page = 0;
   
-  const studentMap = new Map();
-  students.forEach((s: any) => {
-    const c = Array.isArray(s.classes) ? s.classes[0] : s.classes;
-    studentMap.set(s.id, {
-      classId: s.class_id,
-      classTitle: c?.title || 'Unknown Class'
-    });
-  });
+  while (hasMore) {
+    const { data: students, error: studentsError } = await supabaseAdmin
+      .from('students')
+      .select('id, class_id, classes(title)')
+      .range(page * 1000, (page + 1) * 1000 - 1);
+      
+    if (studentsError) throw new Error(studentsError.message);
+    
+    allStudents = allStudents.concat(students || []);
+    if (!students || students.length < 1000) {
+      hasMore = false;
+    }
+    page++;
+  }
+  
+  // 2. Get all voting sessions for this election (with pagination)
+  let allSessions: any[] = [];
+  hasMore = true;
+  page = 0;
+  
+  while (hasMore) {
+    const { data: sessions, error: sessionsError } = await supabaseAdmin
+      .from('election_voting_sessions')
+      .select('status, division_id')
+      .eq('election_id', electionId)
+      .range(page * 1000, (page + 1) * 1000 - 1);
 
-  // 2. Get all secret codes for this election (eligible voters)
-  const { data: codes, error: codesError } = await supabaseAdmin
-    .from('election_secret_codes')
-    .select('student_id')
-    .eq('election_id', electionId);
-
-  if (codesError) throw new Error(codesError.message);
-
-  // 3. Get all voting sessions for this election
-  const { data: sessions, error: sessionsError } = await supabaseAdmin
-    .from('election_voting_sessions')
-    .select('status, division_id')
-    .eq('election_id', electionId);
-
-  if (sessionsError) throw new Error(sessionsError.message);
+    if (sessionsError) throw new Error(sessionsError.message);
+    
+    allSessions = allSessions.concat(sessions || []);
+    if (!sessions || sessions.length < 1000) {
+      hasMore = false;
+    }
+    page++;
+  }
 
   const classStats: Record<string, { classId: string, className: string, total: number, voted: number, voting: number }> = {};
 
-  // Count total eligible per class based on generated codes
-  codes.forEach((code: any) => {
-    const sInfo = studentMap.get(code.student_id);
-    if (sInfo) {
-      if (!classStats[sInfo.classId]) {
-        classStats[sInfo.classId] = { classId: sInfo.classId, className: sInfo.classTitle, total: 0, voted: 0, voting: 0 };
-      }
-      classStats[sInfo.classId].total++;
+  // Count total eligible per class based on all students
+  allStudents.forEach((s: any) => {
+    if (!s.class_id) return;
+    const c = Array.isArray(s.classes) ? s.classes[0] : s.classes;
+    const classTitle = c?.title || 'Unknown Class';
+    
+    if (!classStats[s.class_id]) {
+      classStats[s.class_id] = { classId: s.class_id, className: classTitle, total: 0, voted: 0, voting: 0 };
     }
+    classStats[s.class_id].total++;
   });
 
   // Count voted/voting per class based on sessions
-  sessions.forEach((session: any) => {
+  allSessions.forEach((session: any) => {
     const classId = session.division_id;
     if (classStats[classId]) {
       if (session.status === 'done') classStats[classId].voted++;
       if (session.status === 'doing') classStats[classId].voting++;
     } else {
-      // Edge case: session exists but no total somehow (e.g. deleted code)
+      // Edge case: session exists but no total somehow
       classStats[classId] = { classId, className: 'Unknown Class', total: 0, voted: 0, voting: 0 };
       if (session.status === 'done') classStats[classId].voted++;
       if (session.status === 'doing') classStats[classId].voting++;

@@ -54,10 +54,12 @@ export async function getDivisionRoster(divisionId: string, electionId: string) 
   if (studentsError) throw new Error(studentsError.message);
 
   // Check if they have codes generated for this election
+  const studentIds = students.map(s => s.id);
   const { data: codes, error: codesError } = await supabaseAdmin
     .from('election_secret_codes')
     .select('student_id, status, salt')
-    .eq('election_id', electionId);
+    .eq('election_id', electionId)
+    .in('student_id', studentIds);
 
   if (codesError) throw new Error(codesError.message);
 
